@@ -14,11 +14,47 @@ export class PDFService {
     fs.ensureDirSync(this.outputDir);
   }
 
+  private sanitizeFilename(filename: string): string {
+    const decoded = decodeURIComponent(filename);
+    const basename = path.basename(decoded);
+    
+    if (basename !== decoded || basename.includes('..') || basename.includes('/') || basename.includes('\\')) {
+      throw new Error('Invalid filename: path traversal detected');
+    }
+    
+    if (!/^[a-zA-Z0-9_\-\. ]+$/.test(basename)) {
+      throw new Error('Invalid filename: only alphanumeric, dash, underscore, dot, and space allowed');
+    }
+    
+    return basename;
+  }
+
+  private validatePDFFilename(filename: string): string {
+    const sanitized = this.sanitizeFilename(filename);
+    
+    if (!sanitized.toLowerCase().endsWith('.pdf')) {
+      throw new Error('Invalid filename: must be a PDF file');
+    }
+    
+    return sanitized;
+  }
+
+  private validateJSONFilename(filename: string): string {
+    const sanitized = this.sanitizeFilename(filename);
+    
+    if (!sanitized.toLowerCase().endsWith('.json')) {
+      throw new Error('Invalid filename: must be a JSON file');
+    }
+    
+    return sanitized;
+  }
+
   async generatePDF(templateName: string, data: { [key: string]: string }): Promise<Buffer> {
-    const templatePath = path.join(this.templatesDir, templateName);
+    const sanitizedName = this.validatePDFFilename(templateName);
+    const templatePath = path.join(this.templatesDir, sanitizedName);
     const mappingPath = path.join(
       this.mappingsDir,
-      templateName.replace('.pdf', '.json')
+      sanitizedName.replace('.pdf', '.json')
     );
 
     if (!await fs.pathExists(templatePath)) {
@@ -100,9 +136,10 @@ export class PDFService {
   }
 
   async getMapping(templateName: string): Promise<TemplateMapping | null> {
+    const sanitizedName = this.validatePDFFilename(templateName);
     const mappingPath = path.join(
       this.mappingsDir,
-      templateName.replace('.pdf', '.json')
+      sanitizedName.replace('.pdf', '.json')
     );
 
     if (!await fs.pathExists(mappingPath)) {
@@ -113,16 +150,18 @@ export class PDFService {
   }
 
   async saveMapping(templateName: string, mapping: TemplateMapping): Promise<void> {
+    const sanitizedName = this.validatePDFFilename(templateName);
     const mappingPath = path.join(
       this.mappingsDir,
-      templateName.replace('.pdf', '.json')
+      sanitizedName.replace('.pdf', '.json')
     );
 
     await fs.writeJSON(mappingPath, mapping, { spaces: 2 });
   }
 
   async getTemplate(templateName: string): Promise<Buffer> {
-    const templatePath = path.join(this.templatesDir, templateName);
+    const sanitizedName = this.validatePDFFilename(templateName);
+    const templatePath = path.join(this.templatesDir, sanitizedName);
 
     if (!await fs.pathExists(templatePath)) {
       throw new Error(`Template not found: ${templateName}`);
@@ -132,7 +171,8 @@ export class PDFService {
   }
 
   async saveTemplate(templateName: string, buffer: Buffer): Promise<void> {
-    const templatePath = path.join(this.templatesDir, templateName);
+    const sanitizedName = this.validatePDFFilename(templateName);
+    const templatePath = path.join(this.templatesDir, sanitizedName);
     await fs.writeFile(templatePath, buffer);
   }
 }
