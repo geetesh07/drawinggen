@@ -1,0 +1,14 @@
+node_modules/
+dist/
+build/
+*.log
+.env
+.DS_Store
+output/
+*.pdf
+!templates/*.pdf
+.vscode/
+*.swp
+*.swo
+coverage/
+.nyc_output/
