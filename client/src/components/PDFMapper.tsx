@@ -114,27 +114,28 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
 
     Object.entries(mapping).forEach(([fieldName, field]) => {
       const x = field.x * zoom;
-      const y = field.y * zoom;
+      const baselineY = field.y * zoom;
       const boxWidth = (field.maxWidth || 200) * zoom;
       const boxHeight = (field.maxHeight || field.size + 4) * zoom;
+      const topY = baselineY - (field.size * zoom);
 
       const isEditing = editingField === fieldName;
 
       ctx.strokeStyle = isEditing ? '#f59e0b' : '#667eea';
       ctx.lineWidth = isEditing ? 3 : 2;
       ctx.setLineDash([5, 5]);
-      ctx.strokeRect(x, y, boxWidth, boxHeight);
+      ctx.strokeRect(x, topY, boxWidth, boxHeight);
 
       ctx.fillStyle = isEditing ? 'rgba(245, 158, 11, 0.15)' : 'rgba(102, 126, 234, 0.1)';
-      ctx.fillRect(x, y, boxWidth, boxHeight);
+      ctx.fillRect(x, topY, boxWidth, boxHeight);
 
       ctx.fillStyle = isEditing ? '#f59e0b' : '#667eea';
       ctx.font = 'bold 12px Arial';
       ctx.setLineDash([]);
-      ctx.fillText(fieldName, x, y - 5);
+      ctx.fillText(fieldName, x, topY - 5);
 
       ctx.beginPath();
-      ctx.arc(x, y, 4, 0, 2 * Math.PI);
+      ctx.arc(x, baselineY, 4, 0, 2 * Math.PI);
       ctx.fillStyle = isEditing ? '#f59e0b' : '#ff4444';
       ctx.fill();
     });
@@ -220,7 +221,7 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
       ...mapping,
       [targetFieldName]: {
         x: actualX,
-        y: actualY,
+        y: actualY + fontSize,
         size: fontSize,
         align: alignment,
         color: textColor,
