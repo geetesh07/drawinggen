@@ -60,23 +60,6 @@ export class PDFService {
       : { r: 0, g: 0, b: 0 };
   }
 
-  private async getFont(pdfDoc: PDFDocument, fontFamily?: string): Promise<any> {
-    const fontMap: { [key: string]: any } = {
-      'Helvetica': StandardFonts.Helvetica,
-      'Helvetica-Bold': StandardFonts.HelveticaBold,
-      'Helvetica-Oblique': StandardFonts.HelveticaOblique,
-      'Times-Roman': StandardFonts.TimesRoman,
-      'Times-Bold': StandardFonts.TimesRomanBold,
-      'Times-Italic': StandardFonts.TimesRomanItalic,
-      'Courier': StandardFonts.Courier,
-      'Courier-Bold': StandardFonts.CourierBold,
-    };
-
-    const fontName = fontFamily || 'Helvetica';
-    const standardFont = fontMap[fontName] || StandardFonts.Helvetica;
-    return await pdfDoc.embedFont(standardFont);
-  }
-
   private wrapText(text: string, font: any, fontSize: number, maxWidth: number): string[] {
     const words = text.split(' ');
     const lines: string[] = [];
@@ -139,23 +122,48 @@ export class PDFService {
       const colorHex = fieldMapping.color || '#000000';
       const colorRgb = this.hexToRgb(colorHex);
 
-      let fontFamily = fieldMapping.fontFamily || 'Helvetica';
+      const rawFamily = fieldMapping.fontFamily || 'Helvetica';
       
-      if (fieldMapping.bold && !fontFamily.includes('Bold')) {
-        if (fontFamily === 'Helvetica') fontFamily = 'Helvetica-Bold';
-        else if (fontFamily === 'Times-Roman') fontFamily = 'Times-Bold';
-        else if (fontFamily === 'Courier') fontFamily = 'Courier-Bold';
+      let baseFamily = 'Helvetica';
+      let isBold = fieldMapping.bold || false;
+      let isItalic = fieldMapping.italic || false;
+      
+      if (rawFamily.includes('Times')) {
+        baseFamily = 'Times-Roman';
+        if (rawFamily.includes('Bold')) isBold = true;
+        if (rawFamily.includes('Italic')) isItalic = true;
+      } else if (rawFamily.includes('Courier')) {
+        baseFamily = 'Courier';
+        if (rawFamily.includes('Bold')) isBold = true;
+        if (rawFamily.includes('Oblique')) isItalic = true;
+      } else {
+        baseFamily = 'Helvetica';
+        if (rawFamily.includes('Bold')) isBold = true;
+        if (rawFamily.includes('Oblique')) isItalic = true;
       }
       
-      if (fieldMapping.italic && !fontFamily.includes('Oblique') && !fontFamily.includes('Italic')) {
-        if (fontFamily === 'Helvetica' || fontFamily === 'Helvetica-Bold') {
-          fontFamily = 'Helvetica-Oblique';
-        } else if (fontFamily.includes('Times')) {
-          fontFamily = 'Times-Italic';
-        }
+      let finalFont: any;
+      
+      if (baseFamily === 'Helvetica') {
+        if (isBold && isItalic) finalFont = StandardFonts.HelveticaBoldOblique;
+        else if (isBold) finalFont = StandardFonts.HelveticaBold;
+        else if (isItalic) finalFont = StandardFonts.HelveticaOblique;
+        else finalFont = StandardFonts.Helvetica;
+      } else if (baseFamily === 'Times-Roman') {
+        if (isBold && isItalic) finalFont = StandardFonts.TimesRomanBoldItalic;
+        else if (isBold) finalFont = StandardFonts.TimesRomanBold;
+        else if (isItalic) finalFont = StandardFonts.TimesRomanItalic;
+        else finalFont = StandardFonts.TimesRoman;
+      } else if (baseFamily === 'Courier') {
+        if (isBold && isItalic) finalFont = StandardFonts.CourierBoldOblique;
+        else if (isBold) finalFont = StandardFonts.CourierBold;
+        else if (isItalic) finalFont = StandardFonts.CourierOblique;
+        else finalFont = StandardFonts.Courier;
+      } else {
+        finalFont = StandardFonts.Helvetica;
       }
 
-      const font = await this.getFont(pdfDoc, fontFamily);
+      const font = await pdfDoc.embedFont(finalFont);
 
       const textWidth = font.widthOfTextAtSize(textValue, fontSize);
       

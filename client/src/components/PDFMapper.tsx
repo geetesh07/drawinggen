@@ -249,19 +249,14 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
             </select>
           </div>
           <div className="control-group">
-            <label>Font:</label>
+            <label>Font Family:</label>
             <select
               value={fontFamily}
               onChange={(e) => setFontFamily(e.target.value)}
             >
               <option value="Helvetica">Helvetica</option>
-              <option value="Helvetica-Bold">Helvetica Bold</option>
-              <option value="Helvetica-Oblique">Helvetica Italic</option>
               <option value="Times-Roman">Times Roman</option>
-              <option value="Times-Bold">Times Bold</option>
-              <option value="Times-Italic">Times Italic</option>
               <option value="Courier">Courier</option>
-              <option value="Courier-Bold">Courier Bold</option>
             </select>
           </div>
         </div>
