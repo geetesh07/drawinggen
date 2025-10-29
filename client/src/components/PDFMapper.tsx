@@ -114,10 +114,10 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
 
     Object.entries(mapping).forEach(([fieldName, field]) => {
       const x = field.x * zoom;
-      const baselineY = field.y * zoom;
+      const topY = field.y * zoom;
       const boxWidth = (field.maxWidth || 200) * zoom;
       const boxHeight = (field.maxHeight || field.size + 4) * zoom;
-      const topY = baselineY - (field.size * zoom);
+      const baselineY = topY + (field.size * zoom);
 
       const isEditing = editingField === fieldName;
 
@@ -221,7 +221,7 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
       ...mapping,
       [targetFieldName]: {
         x: actualX,
-        y: actualY + fontSize,
+        y: actualY,
         size: fontSize,
         align: alignment,
         color: textColor,

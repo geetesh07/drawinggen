@@ -168,13 +168,14 @@ export class PDFService {
       const maxHeight = fieldMapping.maxHeight || 1000;
       const lineHeight = fontSize + 2;
       const textWidth = font.widthOfTextAtSize(textValue, fontSize);
+      const baselineY = fieldMapping.y + fontSize;
       
       if (textWidth > maxWidth) {
         const lines = this.wrapText(textValue, font, fontSize, maxWidth);
         
-        let currentY = fieldMapping.y;
+        let currentY = baselineY;
         for (const line of lines) {
-          const lineOffset = currentY - fieldMapping.y;
+          const lineOffset = currentY - baselineY;
           
           if (lineOffset + lineHeight > maxHeight) {
             break;
@@ -203,7 +204,7 @@ export class PDFService {
         }
       } else {
         let x = fieldMapping.x;
-        const y = height - fieldMapping.y;
+        const y = height - baselineY;
 
         if (align === 'center') {
           x = x + (maxWidth - textWidth) / 2;

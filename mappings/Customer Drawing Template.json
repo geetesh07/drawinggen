@@ -1,12 +1,61 @@
 {
   "customer": {
-    "x": 643,
-    "y": 467,
+    "x": 642,
+    "y": 469,
     "size": 12,
     "align": "left",
     "color": "#000000",
     "fontFamily": "Helvetica",
-    "maxWidth": 120,
+    "maxWidth": 134,
+    "maxHeight": 11,
+    "bold": false,
+    "italic": false
+  },
+  "tool_type": {
+    "x": 643,
+    "y": 487,
+    "size": 12,
+    "align": "left",
+    "color": "#000000",
+    "fontFamily": "Helvetica",
+    "maxWidth": 132,
+    "maxHeight": 10,
+    "bold": false,
+    "italic": false
+  },
+  "user": {
+    "x": 581,
+    "y": 548,
+    "size": 12,
+    "align": "left",
+    "color": "#000000",
+    "fontFamily": "Helvetica",
+    "maxWidth": 61,
+    "maxHeight": 10,
+    "bold": false,
+    "italic": false
+  },
+  "flutes": {
+    "x": 307,
+    "y": 407,
+    "size": 12,
+    "align": "left",
+    "color": "#000000",
+    "fontFamily": "Helvetica",
+    "maxWidth": 44,
+    "maxHeight": 13,
+    "bold": false,
+    "italic": false
+  },
+  "helix": {
+    "x": 307,
+    "y": 424,
+    "size": 12,
+    "align": "left",
+    "color": "#000000",
+    "fontFamily": "Helvetica",
+    "maxWidth": 44,
+    "maxHeight": 11,
     "bold": false,
     "italic": false
   }
