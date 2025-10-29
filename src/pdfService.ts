@@ -1,16 +1,20 @@
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import { TemplateMapping, FieldMapping } from './types';
+import { TemplateMapping, FieldMapping, DrawingInsertion } from './types';
 import fs from 'fs-extra';
 import path from 'path';
 
 export class PDFService {
   private templatesDir = path.join(process.cwd(), 'templates');
   private mappingsDir = path.join(process.cwd(), 'mappings');
+  private drawingsDir = path.join(process.cwd(), 'drawings');
+  private drawingsMappingsDir = path.join(process.cwd(), 'drawings_mappings');
   private outputDir = path.join(process.cwd(), 'output');
 
   constructor() {
     fs.ensureDirSync(this.templatesDir);
     fs.ensureDirSync(this.mappingsDir);
+    fs.ensureDirSync(this.drawingsDir);
+    fs.ensureDirSync(this.drawingsMappingsDir);
     fs.ensureDirSync(this.outputDir);
   }
 

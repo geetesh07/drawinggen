@@ -15,11 +15,23 @@ export interface TemplateMapping {
   [fieldName: string]: FieldMapping;
 }
 
+export interface DrawingInsertion {
+  drawing: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  data: {
+    [key: string]: string;
+  };
+}
+
 export interface GenerateRequest {
   template: string;
   data: {
     [key: string]: string;
   };
+  drawings?: DrawingInsertion[];
 }
 
 export interface TemplateInfo {
