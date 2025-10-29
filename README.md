@@ -4,7 +4,11 @@ A TypeScript-based PDF Generator microservice designed for ERPNext/Frappe integr
 
 ## ✨ Features
 
-- 📄 **Visual Field Mapping** - Click on PDFs to define where data should appear
+- 📄 **Visual Area Selection** - Drag on PDFs to visually define field boundaries (width × height)
+- ✏️ **Rich Text Styling** - Font families, colors, bold, italic, alignment options
+- 🎯 **Edit Mode** - Modify existing field mappings and redraw boundaries
+- 📏 **Smart Text Handling** - Automatic word wrapping and overflow clipping
+- 🔍 **Zoom Controls** - 50%-400% zoom for precise field placement
 - 🚀 **REST API** - Simple `/api/generate` endpoint for PDF generation
 - 🎨 **Admin Interface** - React-based UI for template and mapping management
 - 📦 **File-Based** - No database required, everything stored in folders
@@ -47,10 +51,19 @@ npm start
 
 1. Select the template from the sidebar
 2. Go to "Field Mapper" tab
-3. Enter a field name (e.g., "customer_name")
-4. Set font size and alignment
-5. Click on the PDF where the value should appear
-6. Click "💾 Save Mapping"
+3. Enter a field name (e.g., "customer_name") in the right panel
+4. Configure text styling (font size, family, color, bold, italic, alignment)
+5. **Drag on the PDF** to visually select the field area (width × height)
+   - Use zoom controls to adjust view (50%-400%)
+   - Green overlay shows selection area while dragging
+   - Text will automatically wrap within the defined area
+6. Click "💾 Save Mapping" to save all fields
+
+**Edit Existing Fields:**
+1. Click the ✏️ edit button on any mapped field
+2. Adjust styling options in the right panel
+3. Drag on PDF to redefine the field area
+4. Save mapping when done
 
 ### 3. Generate PDFs
 
@@ -201,28 +214,47 @@ Save field mapping for a template.
 
 ## 📝 Mapping JSON Format
 
-Mapping files define field positions in PDF coordinates:
+Mapping files define field positions and styling in PDF coordinates:
 
 ```json
 {
   "customer_name": {
-    "x": 200,
-    "y": 140,
+    "x": 100,
+    "y": 152,
     "size": 12,
-    "align": "left"
+    "align": "left",
+    "fontFamily": "Helvetica",
+    "color": "#000000",
+    "maxWidth": 250,
+    "maxHeight": 40,
+    "bold": false,
+    "italic": false
   },
-  "price": {
-    "x": 400,
-    "y": 180,
-    "size": 14,
-    "align": "right"
+  "description": {
+    "x": 100,
+    "y": 250,
+    "size": 10,
+    "align": "left",
+    "fontFamily": "Times-Roman",
+    "color": "#333333",
+    "maxWidth": 400,
+    "maxHeight": 100,
+    "bold": false,
+    "italic": false
   }
 }
 ```
 
-- **x, y**: Position in points (72 points = 1 inch)
+**Field Properties:**
+- **x, y**: Position in points (y is baseline coordinate, 72 points = 1 inch)
 - **size**: Font size in points
 - **align**: "left", "center", or "right"
+- **fontFamily**: "Helvetica", "Times-Roman", or "Courier"
+- **color**: Hex color code (e.g., "#000000" for black)
+- **maxWidth**: Maximum width in points (text wraps automatically)
+- **maxHeight**: Maximum height in points (text clips if exceeded)
+- **bold**: Apply bold weight
+- **italic**: Apply italic/oblique style
 
 ## 🚢 Deployment
 
