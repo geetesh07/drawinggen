@@ -1,0 +1,149 @@
+Build a TypeScript-based PDF Generator microservice for ERPNext/Frappe integration.
+This app should take JSON from ERP, fill values into a pre-mapped PDF template, and return a ready-to-download filled PDF — instantly, no UI for users.
+
+🎯 Goal
+
+ERP calls → /generate endpoint
+Sends: template name + data JSON
+Gets: filled PDF file
+
+I (admin) will maintain the PDF templates and mapping JSON files manually.
+No user editing, no database — pure file-based logic.
+
+⚙️ Tech Stack
+
+Node.js (v18+) + TypeScript
+
+Express.js → API routing
+
+pdf-lib → read and write PDFs
+
+pdfjs-dist (optional) → for admin preview
+
+fs-extra → file management
+
+CORS enabled
+
+📁 Folder Structure
+/templates/           → Original PDF templates (e.g. XYZ_Endmill.pdf)
+/mappings/            → Mapping JSON files (same filename as template)
+/output/              → Generated PDFs (optional, temporary)
+/src/
+  ├── server.ts       → Express app
+  ├── pdfService.ts   → PDF load + fill + generate logic
+  ├── types.ts        → Type definitions
+/package.json
+tsconfig.json
+
+🧠 Mapping JSON Format
+
+Each mapping file defines where to place each field:
+
+{
+  "flute_dia": { "x": 120, "y": 440, "size": 10, "align": "left" },
+  "price": { "x": 300, "y": 470, "size": 12, "align": "right" },
+  "coating": { "x": 180, "y": 500, "size": 10 }
+}
+
+🔥 API Endpoints
+POST /generate
+
+Request body:
+
+{
+  "template": "XYZ_Endmill.pdf",
+  "data": {
+    "flute_dia": "12.5 mm",
+    "price": "₹1,250",
+    "coating": "TiAlN"
+  }
+}
+
+
+Response:
+
+Content-Type: application/pdf
+
+Content-Disposition: attachment; filename="XYZ_Endmill_filled.pdf"
+
+Binary stream of generated PDF
+
+Behavior:
+
+Loads /templates/XYZ_Endmill.pdf
+
+Loads /mappings/XYZ_Endmill.json
+
+Fills text at the defined coordinates using pdf-lib
+
+Auto-shrinks font if text is long
+
+Supports alignment (left, center, right)
+
+Returns generated PDF as a direct download stream
+
+🧩 ERP Integration Example
+
+In Frappe/ERPNext button click handler:
+
+frappe.call({
+  method: "POST",
+  url: "https://yourdomain.com/generate",
+  headers: { "Content-Type": "application/json" },
+  data: {
+    template: "XYZ_Endmill.pdf",
+    data: {
+      flute_dia: frm.doc.flute_dia,
+      price: frm.doc.price,
+      coating: frm.doc.coating
+    }
+  },
+  responseType: "blob",
+  success: function (r) {
+    const blob = new Blob([r], { type: "application/pdf" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "ToolQuote.pdf";
+    link.click();
+  }
+});
+
+
+→ User clicks “Download Form” → instant PDF download.
+
+🛠 Optional Admin Tool (for you only)
+
+Add /admin route:
+
+Shows PDF viewer (PDF.js)
+
+Click on PDF → define field name → save JSON mapping to /mappings/
+
+Include “Load existing mapping” & “Preview filled values” options
+(Only accessible with static ADMIN_KEY in .env)
+
+🚀 Deployment
+
+Runs on Node 18+ (works on cPanel Node.js Selector or Vercel/Render)
+
+No DB, no extra config.
+
+Just upload folders + server.ts build output to /api/ or /app/
+
+Use npm run build && npm start
+
+🧾 Summary
+
+/generate API: Receives JSON → returns filled PDF
+
+/mappings/*.json: define coordinates
+
+Admin-only /admin to visually adjust mappings (optional)
+
+Fully TypeScript, async/await, clean code
+
+Works with ERP directly — one click → instant download
+
+Goal: A minimal, fast, file-based TypeScript app for dynamic PDF generation from ERPNext/Frappe via API — with optional visual field mapping for admin.
+
+IGNORE THE FOLDER STRUCUTRE ETC. Just understand the problem and make something u can make just make sure it works also make sure that i can adjust positioning of dynamic values that u will get via JSON from a pdf / dxf format so that it will work always
