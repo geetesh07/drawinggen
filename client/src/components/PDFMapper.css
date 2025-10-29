@@ -9,6 +9,8 @@
   padding: 1.5rem;
   background: #f8f9fa;
   border-bottom: 1px solid #e0e0e0;
+  max-height: 400px;
+  overflow-y: auto;
 }
 
 .mapper-controls h3 {
@@ -42,6 +44,26 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.checkbox-row {
+  display: flex;
+  gap: 2rem;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: auto;
+  cursor: pointer;
 }
 
 .instruction {
@@ -64,19 +86,52 @@
 .pdf-viewer {
   flex: 1;
   overflow: auto;
-  padding: 2rem;
-  background: #e9ecef;
+  padding: 1rem;
+  background: #2a2a2a;
   display: flex;
-  justify-content: center;
-  align-items: flex-start;
+  flex-direction: column;
 }
 
-.pdf-viewer canvas {
-  cursor: crosshair;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  background: white;
-  max-width: 100%;
-  height: auto;
+.zoom-controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+}
+
+.zoom-controls button {
+  padding: 0.5rem 1rem;
+  background: #667eea;
+  color: white;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.zoom-controls button:hover {
+  background: #5568d3;
+}
+
+.zoom-controls span {
+  color: white;
+  font-weight: 500;
+  min-width: 60px;
+  text-align: center;
+}
+
+.pdf-container {
+  position: relative;
+  display: inline-block;
+  margin: 0 auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.pdf-container canvas {
+  display: block;
 }
 
 .fields-list {
@@ -155,9 +210,10 @@
 }
 
 .field-details {
-  font-size: 0.8rem;
+  font-size: 0.75rem;
   color: #666;
   font-family: 'Courier New', monospace;
+  line-height: 1.4;
 }
 
 .delete-btn {

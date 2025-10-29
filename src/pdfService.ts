@@ -49,6 +49,58 @@ export class PDFService {
     return sanitized;
   }
 
+  private hexToRgb(hex: string): { r: number; g: number; b: number } {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result
+      ? {
+          r: parseInt(result[1], 16) / 255,
+          g: parseInt(result[2], 16) / 255,
+          b: parseInt(result[3], 16) / 255,
+        }
+      : { r: 0, g: 0, b: 0 };
+  }
+
+  private async getFont(pdfDoc: PDFDocument, fontFamily?: string): Promise<any> {
+    const fontMap: { [key: string]: any } = {
+      'Helvetica': StandardFonts.Helvetica,
+      'Helvetica-Bold': StandardFonts.HelveticaBold,
+      'Helvetica-Oblique': StandardFonts.HelveticaOblique,
+      'Times-Roman': StandardFonts.TimesRoman,
+      'Times-Bold': StandardFonts.TimesRomanBold,
+      'Times-Italic': StandardFonts.TimesRomanItalic,
+      'Courier': StandardFonts.Courier,
+      'Courier-Bold': StandardFonts.CourierBold,
+    };
+
+    const fontName = fontFamily || 'Helvetica';
+    const standardFont = fontMap[fontName] || StandardFonts.Helvetica;
+    return await pdfDoc.embedFont(standardFont);
+  }
+
+  private wrapText(text: string, font: any, fontSize: number, maxWidth: number): string[] {
+    const words = text.split(' ');
+    const lines: string[] = [];
+    let currentLine = '';
+
+    for (const word of words) {
+      const testLine = currentLine ? `${currentLine} ${word}` : word;
+      const width = font.widthOfTextAtSize(testLine, fontSize);
+
+      if (width > maxWidth && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = testLine;
+      }
+    }
+
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+
+    return lines;
+  }
+
   async generatePDF(templateName: string, data: { [key: string]: string }): Promise<Buffer> {
     const sanitizedName = this.validatePDFFilename(templateName);
     const templatePath = path.join(this.templatesDir, sanitizedName);
@@ -71,8 +123,6 @@ export class PDFService {
     const pdfDoc = await PDFDocument.load(templateBytes);
     const pages = pdfDoc.getPages();
     const firstPage = pages[0];
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-    const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
     const { height } = firstPage.getSize();
 
@@ -83,34 +133,76 @@ export class PDFService {
       }
 
       const textValue = String(value);
-      let fontSize = fieldMapping.size || 10;
+      let fontSize = fieldMapping.size || 12;
       const align = fieldMapping.align || 'left';
+      const maxWidth = fieldMapping.maxWidth || 200;
+      const colorHex = fieldMapping.color || '#000000';
+      const colorRgb = this.hexToRgb(colorHex);
+
+      let fontFamily = fieldMapping.fontFamily || 'Helvetica';
+      
+      if (fieldMapping.bold && !fontFamily.includes('Bold')) {
+        if (fontFamily === 'Helvetica') fontFamily = 'Helvetica-Bold';
+        else if (fontFamily === 'Times-Roman') fontFamily = 'Times-Bold';
+        else if (fontFamily === 'Courier') fontFamily = 'Courier-Bold';
+      }
+      
+      if (fieldMapping.italic && !fontFamily.includes('Oblique') && !fontFamily.includes('Italic')) {
+        if (fontFamily === 'Helvetica' || fontFamily === 'Helvetica-Bold') {
+          fontFamily = 'Helvetica-Oblique';
+        } else if (fontFamily.includes('Times')) {
+          fontFamily = 'Times-Italic';
+        }
+      }
+
+      const font = await this.getFont(pdfDoc, fontFamily);
 
       const textWidth = font.widthOfTextAtSize(textValue, fontSize);
-      const maxWidth = 200;
-
+      
       if (textWidth > maxWidth) {
-        fontSize = (maxWidth / textWidth) * fontSize;
+        const lines = this.wrapText(textValue, font, fontSize, maxWidth);
+        
+        let currentY = fieldMapping.y;
+        for (const line of lines) {
+          let x = fieldMapping.x;
+          const y = height - currentY;
+
+          const lineWidth = font.widthOfTextAtSize(line, fontSize);
+          
+          if (align === 'center') {
+            x = x + (maxWidth - lineWidth) / 2;
+          } else if (align === 'right') {
+            x = x + maxWidth - lineWidth;
+          }
+
+          firstPage.drawText(line, {
+            x,
+            y,
+            size: fontSize,
+            font: font,
+            color: rgb(colorRgb.r, colorRgb.g, colorRgb.b),
+          });
+
+          currentY += fontSize + 2;
+        }
+      } else {
+        let x = fieldMapping.x;
+        const y = height - fieldMapping.y;
+
+        if (align === 'center') {
+          x = x + (maxWidth - textWidth) / 2;
+        } else if (align === 'right') {
+          x = x + maxWidth - textWidth;
+        }
+
+        firstPage.drawText(textValue, {
+          x,
+          y,
+          size: fontSize,
+          font: font,
+          color: rgb(colorRgb.r, colorRgb.g, colorRgb.b),
+        });
       }
-
-      let x = fieldMapping.x;
-      const y = height - fieldMapping.y;
-
-      if (align === 'center') {
-        const adjustedWidth = font.widthOfTextAtSize(textValue, fontSize);
-        x = x - adjustedWidth / 2;
-      } else if (align === 'right') {
-        const adjustedWidth = font.widthOfTextAtSize(textValue, fontSize);
-        x = x - adjustedWidth;
-      }
-
-      firstPage.drawText(textValue, {
-        x,
-        y,
-        size: fontSize,
-        font: font,
-        color: rgb(0, 0, 0),
-      });
     }
 
     const pdfBytes = await pdfDoc.save();
