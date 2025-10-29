@@ -25,9 +25,7 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
   const [newFieldName, setNewFieldName] = useState('');
   const [fontSize, setFontSize] = useState(10);
   const [alignment, setAlignment] = useState<'left' | 'center' | 'right'>('left');
-  const [pdfUrl, setPdfUrl] = useState('');
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
     loadMapping();
@@ -50,7 +48,6 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
 
   const loadPDF = async () => {
     const url = `/api/templates/${templateName}`;
-    setPdfUrl(url);
 
     try {
       const loadingTask = pdfjsLib.getDocument(url);
@@ -66,7 +63,6 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
 
       canvas.width = viewport.width;
       canvas.height = viewport.height;
-      setCanvasSize({ width: viewport.width, height: viewport.height });
 
       await page.render({
         canvasContext: context,
