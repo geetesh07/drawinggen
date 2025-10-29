@@ -165,6 +165,8 @@ export class PDFService {
 
       const font = await pdfDoc.embedFont(finalFont);
 
+      const maxHeight = fieldMapping.maxHeight || 1000;
+      const lineHeight = fontSize + 2;
       const textWidth = font.widthOfTextAtSize(textValue, fontSize);
       
       if (textWidth > maxWidth) {
@@ -172,6 +174,12 @@ export class PDFService {
         
         let currentY = fieldMapping.y;
         for (const line of lines) {
+          const lineOffset = currentY - fieldMapping.y;
+          
+          if (lineOffset + lineHeight > maxHeight) {
+            break;
+          }
+          
           let x = fieldMapping.x;
           const y = height - currentY;
 
@@ -191,7 +199,7 @@ export class PDFService {
             color: rgb(colorRgb.r, colorRgb.g, colorRgb.b),
           });
 
-          currentY += fontSize + 2;
+          currentY += lineHeight;
         }
       } else {
         let x = fieldMapping.x;

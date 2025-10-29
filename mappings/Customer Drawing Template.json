@@ -1,8 +1,13 @@
 {
   "customer": {
-    "x": 648,
-    "y": 461,
-    "size": 10,
-    "align": "left"
+    "x": 643,
+    "y": 467,
+    "size": 12,
+    "align": "left",
+    "color": "#000000",
+    "fontFamily": "Helvetica",
+    "maxWidth": 120,
+    "bold": false,
+    "italic": false
   }
 }

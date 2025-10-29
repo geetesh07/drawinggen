@@ -12,6 +12,7 @@ interface FieldMapping {
   color?: string;
   fontFamily?: string;
   maxWidth?: number;
+  maxHeight?: number;
   bold?: boolean;
   italic?: boolean;
 }
@@ -27,15 +28,18 @@ interface Props {
 
 function PDFMapper({ templateName, onMappingSaved }: Props) {
   const [mapping, setMapping] = useState<TemplateMapping>({});
+  const [editingField, setEditingField] = useState<string | null>(null);
   const [newFieldName, setNewFieldName] = useState('');
   const [fontSize, setFontSize] = useState(12);
   const [alignment, setAlignment] = useState<'left' | 'center' | 'right'>('left');
   const [textColor, setTextColor] = useState('#000000');
   const [fontFamily, setFontFamily] = useState('Helvetica');
-  const [maxWidth, setMaxWidth] = useState(200);
   const [bold, setBold] = useState(false);
   const [italic, setItalic] = useState(false);
-  const [zoom, setZoom] = useState(2.0);
+  const [zoom, setZoom] = useState(1.5);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(null);
+  const [currentRect, setCurrentRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -51,7 +55,7 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
 
   useEffect(() => {
     drawFieldBoxes();
-  }, [mapping, zoom]);
+  }, [mapping, zoom, currentRect]);
 
   const loadMapping = async () => {
     try {
@@ -112,30 +116,42 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
       const x = field.x * zoom;
       const y = field.y * zoom;
       const boxWidth = (field.maxWidth || 200) * zoom;
-      const boxHeight = (field.size + 4) * zoom;
+      const boxHeight = (field.maxHeight || field.size + 4) * zoom;
 
-      ctx.strokeStyle = '#667eea';
-      ctx.lineWidth = 2;
+      const isEditing = editingField === fieldName;
+
+      ctx.strokeStyle = isEditing ? '#f59e0b' : '#667eea';
+      ctx.lineWidth = isEditing ? 3 : 2;
       ctx.setLineDash([5, 5]);
-      ctx.strokeRect(x, y - boxHeight + 4, boxWidth, boxHeight);
+      ctx.strokeRect(x, y, boxWidth, boxHeight);
 
-      ctx.fillStyle = 'rgba(102, 126, 234, 0.1)';
-      ctx.fillRect(x, y - boxHeight + 4, boxWidth, boxHeight);
+      ctx.fillStyle = isEditing ? 'rgba(245, 158, 11, 0.15)' : 'rgba(102, 126, 234, 0.1)';
+      ctx.fillRect(x, y, boxWidth, boxHeight);
 
-      ctx.fillStyle = '#667eea';
+      ctx.fillStyle = isEditing ? '#f59e0b' : '#667eea';
       ctx.font = 'bold 12px Arial';
       ctx.setLineDash([]);
-      ctx.fillText(fieldName, x, y - boxHeight - 5);
+      ctx.fillText(fieldName, x, y - 5);
 
       ctx.beginPath();
       ctx.arc(x, y, 4, 0, 2 * Math.PI);
-      ctx.fillStyle = '#ff4444';
+      ctx.fillStyle = isEditing ? '#f59e0b' : '#ff4444';
       ctx.fill();
     });
+
+    if (currentRect) {
+      ctx.strokeStyle = '#10b981';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.strokeRect(currentRect.x, currentRect.y, currentRect.width, currentRect.height);
+
+      ctx.fillStyle = 'rgba(16, 185, 129, 0.15)';
+      ctx.fillRect(currentRect.x, currentRect.y, currentRect.width, currentRect.height);
+    }
   };
 
-  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!newFieldName.trim()) {
+  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!newFieldName.trim() && !editingField) {
       alert('Please enter a field name first');
       return;
     }
@@ -150,26 +166,80 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
     const canvasX = (e.clientX - rect.left) * scaleX;
     const canvasY = (e.clientY - rect.top) * scaleY;
 
-    const actualX = Math.round(canvasX / zoom);
-    const actualY = Math.round(canvasY / zoom);
+    setIsDrawing(true);
+    setStartPos({ x: canvasX, y: canvasY });
+    setCurrentRect({ x: canvasX, y: canvasY, width: 0, height: 0 });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDrawing || !startPos) return;
+
+    const canvas = overlayCanvasRef.current;
+    if (!canvas) return;
+
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    const canvasX = (e.clientX - rect.left) * scaleX;
+    const canvasY = (e.clientY - rect.top) * scaleY;
+
+    const width = canvasX - startPos.x;
+    const height = canvasY - startPos.y;
+
+    setCurrentRect({
+      x: width < 0 ? canvasX : startPos.x,
+      y: height < 0 ? canvasY : startPos.y,
+      width: Math.abs(width),
+      height: Math.abs(height),
+    });
+
+    drawFieldBoxes();
+  };
+
+  const handleMouseUp = () => {
+    if (!isDrawing || !currentRect || !startPos) return;
+
+    const actualX = Math.round(currentRect.x / zoom);
+    const actualY = Math.round(currentRect.y / zoom);
+    const actualWidth = Math.round(currentRect.width / zoom);
+    const actualHeight = Math.round(currentRect.height / zoom);
+
+    if (actualWidth < 10 || actualHeight < 5) {
+      alert('Area too small. Please draw a larger selection area.');
+      setIsDrawing(false);
+      setStartPos(null);
+      setCurrentRect(null);
+      drawFieldBoxes();
+      return;
+    }
+
+    const targetFieldName = editingField || newFieldName;
 
     const newMapping = {
       ...mapping,
-      [newFieldName]: {
+      [targetFieldName]: {
         x: actualX,
         y: actualY,
         size: fontSize,
         align: alignment,
         color: textColor,
         fontFamily: fontFamily,
-        maxWidth: maxWidth,
+        maxWidth: actualWidth,
+        maxHeight: actualHeight,
         bold: bold,
         italic: italic,
       },
     };
 
     setMapping(newMapping);
-    setNewFieldName('');
+    if (!editingField) {
+      setNewFieldName('');
+    }
+    setEditingField(null);
+    setIsDrawing(false);
+    setStartPos(null);
+    setCurrentRect(null);
   };
 
   const handleSaveMapping = async () => {
@@ -196,170 +266,208 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
     const newMapping = { ...mapping };
     delete newMapping[fieldName];
     setMapping(newMapping);
+    if (editingField === fieldName) {
+      setEditingField(null);
+    }
+  };
+
+  const handleEditField = (fieldName: string) => {
+    const field = mapping[fieldName];
+    setEditingField(fieldName);
+    setFontSize(field.size);
+    setAlignment(field.align || 'left');
+    setTextColor(field.color || '#000000');
+    setFontFamily(field.fontFamily || 'Helvetica');
+    setBold(field.bold || false);
+    setItalic(field.italic || false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingField(null);
+    setFontSize(12);
+    setAlignment('left');
+    setTextColor('#000000');
+    setFontFamily('Helvetica');
+    setBold(false);
+    setItalic(false);
   };
 
   return (
     <div className="pdf-mapper">
-      <div className="mapper-controls">
-        <h3>Add Field Mapping</h3>
-        
-        <div className="control-group">
-          <label>Field Name:</label>
-          <input
-            type="text"
-            value={newFieldName}
-            onChange={(e) => setNewFieldName(e.target.value)}
-            placeholder="e.g., customer_name"
-          />
-        </div>
-
-        <div className="control-row">
-          <div className="control-group">
-            <label>Font Size:</label>
-            <input
-              type="number"
-              value={fontSize}
-              onChange={(e) => setFontSize(Number(e.target.value))}
-              min="6"
-              max="72"
-            />
-          </div>
-          <div className="control-group">
-            <label>Max Width:</label>
-            <input
-              type="number"
-              value={maxWidth}
-              onChange={(e) => setMaxWidth(Number(e.target.value))}
-              min="50"
-              max="1000"
-            />
-          </div>
-        </div>
-
-        <div className="control-row">
-          <div className="control-group">
-            <label>Align:</label>
-            <select
-              value={alignment}
-              onChange={(e) => setAlignment(e.target.value as 'left' | 'center' | 'right')}
-            >
-              <option value="left">Left</option>
-              <option value="center">Center</option>
-              <option value="right">Right</option>
-            </select>
-          </div>
-          <div className="control-group">
-            <label>Font Family:</label>
-            <select
-              value={fontFamily}
-              onChange={(e) => setFontFamily(e.target.value)}
-            >
-              <option value="Helvetica">Helvetica</option>
-              <option value="Times-Roman">Times Roman</option>
-              <option value="Courier">Courier</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="control-row">
-          <div className="control-group">
-            <label>Text Color:</label>
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-              <input
-                type="color"
-                value={textColor}
-                onChange={(e) => setTextColor(e.target.value)}
-                style={{ width: '50px', height: '35px' }}
-              />
-              <input
-                type="text"
-                value={textColor}
-                onChange={(e) => setTextColor(e.target.value)}
-                placeholder="#000000"
-                style={{ flex: 1 }}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="control-row checkbox-row">
-          <label className="checkbox-label">
-            <input
-              type="checkbox"
-              checked={bold}
-              onChange={(e) => setBold(e.target.checked)}
-            />
-            <span>Bold</span>
-          </label>
-          <label className="checkbox-label">
-            <input
-              type="checkbox"
-              checked={italic}
-              onChange={(e) => setItalic(e.target.checked)}
-            />
-            <span>Italic</span>
-          </label>
-        </div>
-
-        <p className="instruction">
-          Click on the PDF to place the field. Boxes show field boundaries.
-        </p>
-      </div>
-
       <div className="mapper-content">
         <div className="pdf-viewer">
           <div className="zoom-controls">
             <button onClick={() => setZoom(Math.max(0.5, zoom - 0.25))}>🔍-</button>
             <span>{Math.round(zoom * 100)}%</span>
             <button onClick={() => setZoom(Math.min(4, zoom + 0.25))}>🔍+</button>
-            <button onClick={() => setZoom(1.0)}>Reset</button>
+            <button onClick={() => setZoom(1.5)}>Reset</button>
           </div>
           <div className="pdf-container">
             <canvas ref={canvasRef} style={{ position: 'absolute' }} />
             <canvas 
-              ref={overlayCanvasRef} 
-              onClick={handleCanvasClick}
-              style={{ position: 'absolute', cursor: 'crosshair' }}
+              ref={overlayCanvasRef}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={() => {
+                if (isDrawing) handleMouseUp();
+              }}
+              style={{ position: 'absolute', cursor: isDrawing ? 'crosshair' : 'crosshair' }}
             />
           </div>
         </div>
 
-        <div className="fields-list">
-          <div className="fields-header">
-            <h3>Mapped Fields ({Object.keys(mapping).length})</h3>
-            <button className="save-btn" onClick={handleSaveMapping}>
-              💾 Save Mapping
-            </button>
-          </div>
-          {Object.keys(mapping).length === 0 ? (
-            <div className="no-fields">
-              <p>No fields mapped yet</p>
-              <p className="hint">Click on the PDF to add fields</p>
+        <div className="fields-panel">
+          <div className="panel-section">
+            <h3>{editingField ? 'Edit Field' : 'Add New Field'}</h3>
+            
+            {editingField ? (
+              <div className="edit-info">
+                <strong>Editing: {editingField}</strong>
+                <button className="cancel-edit-btn" onClick={handleCancelEdit}>Cancel</button>
+              </div>
+            ) : (
+              <div className="control-group">
+                <label>Field Name:</label>
+                <input
+                  type="text"
+                  value={newFieldName}
+                  onChange={(e) => setNewFieldName(e.target.value)}
+                  placeholder="e.g., customer_name"
+                />
+              </div>
+            )}
+
+            <div className="control-row">
+              <div className="control-group">
+                <label>Font Size:</label>
+                <input
+                  type="number"
+                  value={fontSize}
+                  onChange={(e) => setFontSize(Number(e.target.value))}
+                  min="6"
+                  max="72"
+                />
+              </div>
+              <div className="control-group">
+                <label>Align:</label>
+                <select
+                  value={alignment}
+                  onChange={(e) => setAlignment(e.target.value as 'left' | 'center' | 'right')}
+                >
+                  <option value="left">Left</option>
+                  <option value="center">Center</option>
+                  <option value="right">Right</option>
+                </select>
+              </div>
             </div>
-          ) : (
-            <div className="fields-items">
-              {Object.entries(mapping).map(([fieldName, field]) => (
-                <div key={fieldName} className="field-item">
-                  <div className="field-info">
-                    <div className="field-name">{fieldName}</div>
-                    <div className="field-details">
-                      x: {field.x}, y: {field.y}
-                      <br />
-                      size: {field.size}, width: {field.maxWidth || 200}
-                      <br />
-                      {field.fontFamily || 'Helvetica'}, {field.color || '#000000'}
+
+            <div className="control-row">
+              <div className="control-group">
+                <label>Font Family:</label>
+                <select
+                  value={fontFamily}
+                  onChange={(e) => setFontFamily(e.target.value)}
+                >
+                  <option value="Helvetica">Helvetica</option>
+                  <option value="Times-Roman">Times Roman</option>
+                  <option value="Courier">Courier</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="control-group">
+              <label>Text Color:</label>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <input
+                  type="color"
+                  value={textColor}
+                  onChange={(e) => setTextColor(e.target.value)}
+                  style={{ width: '50px', height: '35px' }}
+                />
+                <input
+                  type="text"
+                  value={textColor}
+                  onChange={(e) => setTextColor(e.target.value)}
+                  placeholder="#000000"
+                  style={{ flex: 1 }}
+                />
+              </div>
+            </div>
+
+            <div className="control-row checkbox-row">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={bold}
+                  onChange={(e) => setBold(e.target.checked)}
+                />
+                <span>Bold</span>
+              </label>
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={italic}
+                  onChange={(e) => setItalic(e.target.checked)}
+                />
+                <span>Italic</span>
+              </label>
+            </div>
+
+            <div className="instruction">
+              {editingField 
+                ? '🎯 Drag on PDF to redefine area for this field'
+                : '🎯 Drag on PDF to select field area (width × height)'}
+            </div>
+          </div>
+
+          <div className="panel-section">
+            <div className="fields-header">
+              <h3>Mapped Fields ({Object.keys(mapping).length})</h3>
+              <button className="save-btn" onClick={handleSaveMapping}>
+                💾 Save Mapping
+              </button>
+            </div>
+            {Object.keys(mapping).length === 0 ? (
+              <div className="no-fields">
+                <p>No fields mapped yet</p>
+                <p className="hint">Drag on PDF to add fields</p>
+              </div>
+            ) : (
+              <div className="fields-items">
+                {Object.entries(mapping).map(([fieldName, field]) => (
+                  <div key={fieldName} className={`field-item ${editingField === fieldName ? 'editing' : ''}`}>
+                    <div className="field-info">
+                      <div className="field-name">{fieldName}</div>
+                      <div className="field-details">
+                        x:{field.x}, y:{field.y}, size:{field.size}
+                        <br />
+                        area: {field.maxWidth || 200}×{field.maxHeight || 20}
+                        <br />
+                        {field.fontFamily || 'Helvetica'}, {field.color || '#000'}
+                      </div>
+                    </div>
+                    <div className="field-actions">
+                      <button
+                        className="edit-btn"
+                        onClick={() => handleEditField(fieldName)}
+                        title="Edit field"
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        className="delete-btn"
+                        onClick={() => handleDeleteField(fieldName)}
+                        title="Delete field"
+                      >
+                        🗑️
+                      </button>
                     </div>
                   </div>
-                  <button
-                    className="delete-btn"
-                    onClick={() => handleDeleteField(fieldName)}
-                  >
-                    🗑️
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

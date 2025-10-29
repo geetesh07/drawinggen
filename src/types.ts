@@ -6,6 +6,7 @@ export interface FieldMapping {
   color?: string;
   fontFamily?: 'Helvetica' | 'Helvetica-Bold' | 'Helvetica-Oblique' | 'Times-Roman' | 'Times-Bold' | 'Times-Italic' | 'Courier' | 'Courier-Bold';
   maxWidth?: number;
+  maxHeight?: number;
   bold?: boolean;
   italic?: boolean;
 }
