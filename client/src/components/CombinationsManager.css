@@ -113,7 +113,7 @@
 }
 
 .editor-content {
-  max-width: 900px;
+  max-width: 100%;
   margin: 0 auto;
 }
 
@@ -545,4 +545,19 @@
   font-size: 1rem;
   margin: 0;
   line-height: 1.5;
+}
+
+.visual-placement-container {
+  margin-top: 1.5rem;
+}
+
+.visual-placement-container > label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+}
+
+.visual-placement-container .visual-placement-editor {
+  height: 600px;
+  border: 2px solid #e0e0e0;
 }

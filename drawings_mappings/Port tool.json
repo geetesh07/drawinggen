@@ -1,13 +1,13 @@
 {
   "shankdia": {
-    "x": 237,
-    "y": 32,
+    "x": 282,
+    "y": 71,
     "size": 12,
     "align": "left",
     "color": "#000000",
     "fontFamily": "Helvetica",
-    "maxWidth": 179,
-    "maxHeight": 66,
+    "maxWidth": 92,
+    "maxHeight": 39,
     "bold": false,
     "italic": false
   }

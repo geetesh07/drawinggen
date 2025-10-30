@@ -1,0 +1,168 @@
+.visual-placement-editor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #f5f5f5;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.placement-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: white;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.toolbar-left {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.toolbar-btn {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+  background: #667eea;
+  color: white;
+}
+
+.toolbar-btn:hover {
+  background: #5568d3;
+  transform: translateY(-1px);
+}
+
+.toolbar-btn.danger {
+  background: #dc3545;
+}
+
+.toolbar-btn.danger:hover {
+  background: #c82333;
+}
+
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.zoom-controls label {
+  font-weight: 500;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.zoom-controls button {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  background: #f0f0f0;
+  color: #333;
+  font-weight: bold;
+  font-size: 1.2rem;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zoom-controls button:hover {
+  background: #e0e0e0;
+}
+
+.zoom-controls span {
+  min-width: 50px;
+  text-align: center;
+  font-weight: 500;
+  color: #333;
+}
+
+.placement-properties {
+  padding: 1rem;
+  background: white;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.placement-properties h4 {
+  margin: 0 0 0.75rem 0;
+  color: #667eea;
+  font-size: 1rem;
+}
+
+.properties-grid {
+  display: grid;
+  grid-template-columns: 2fr repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+.prop-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.prop-field label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #666;
+}
+
+.prop-field select,
+.prop-field input {
+  padding: 0.5rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+.prop-field select:focus,
+.prop-field input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.canvas-container {
+  flex: 1;
+  position: relative;
+  overflow: auto;
+  background: #2a2a2a;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.pdf-canvas {
+  position: absolute;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.overlay-canvas {
+  position: absolute;
+  cursor: crosshair;
+}
+
+.overlay-canvas:active {
+  cursor: move;
+}
+
+.placement-help {
+  padding: 0.75rem 1rem;
+  background: #fffbea;
+  border-top: 2px solid #f5e6a8;
+  text-align: center;
+}
+
+.placement-help p {
+  margin: 0;
+  color: #856404;
+  font-size: 0.9rem;
+}
+
+.placement-help strong {
+  color: #533c04;
+}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import VisualPlacementEditor from './VisualPlacementEditor';
 import './CombinationsManager.css';
 
 interface Combination {
@@ -204,48 +205,6 @@ function CombinationsManager() {
     setNewCombinationName('');
   };
 
-  const handleAddDrawing = () => {
-    if (!currentCombination) return;
-    
-    const newPlacement: DrawingPlacement = {
-      drawingName: drawings.length > 0 ? drawings[0].name : '',
-      x: 50,
-      y: 50,
-      width: 300,
-      height: 200
-    };
-
-    setCurrentCombination({
-      ...currentCombination,
-      drawingPlacements: [...currentCombination.drawingPlacements, newPlacement]
-    });
-  };
-
-  const handleRemoveDrawing = (index: number) => {
-    if (!currentCombination) return;
-    
-    const newPlacements = currentCombination.drawingPlacements.filter((_, i) => i !== index);
-    setCurrentCombination({
-      ...currentCombination,
-      drawingPlacements: newPlacements
-    });
-  };
-
-  const handleUpdatePlacement = (index: number, field: keyof DrawingPlacement, value: string | number) => {
-    if (!currentCombination) return;
-    
-    const newPlacements = [...currentCombination.drawingPlacements];
-    newPlacements[index] = {
-      ...newPlacements[index],
-      [field]: value
-    };
-
-    setCurrentCombination({
-      ...currentCombination,
-      drawingPlacements: newPlacements
-    });
-  };
-
   const handleSave = async () => {
     if (!currentCombination) return;
     
@@ -419,85 +378,23 @@ function CombinationsManager() {
               </select>
             </div>
 
-            <div className="form-group">
-              <div className="section-header">
-                <label>Drawing Placements:</label>
-                <button className="add-drawing-btn" onClick={handleAddDrawing}>
-                  + Add Drawing
-                </button>
-              </div>
-
-              {currentCombination?.drawingPlacements.length === 0 ? (
-                <div className="no-placements">
-                  <p>No drawings added yet</p>
-                  <p className="hint">Click "Add Drawing" to add a drawing placement</p>
-                </div>
+            <div className="form-group visual-placement-container">
+              <label>Visual Drawing Placement:</label>
+              {currentCombination?.templateName ? (
+                <VisualPlacementEditor
+                  templateName={currentCombination.templateName}
+                  placements={currentCombination.drawingPlacements}
+                  onPlacementsChange={(newPlacements) => {
+                    setCurrentCombination({
+                      ...currentCombination,
+                      drawingPlacements: newPlacements
+                    });
+                  }}
+                  drawings={drawings.map(d => d.name)}
+                />
               ) : (
-                <div className="placements-list">
-                  {currentCombination?.drawingPlacements.map((placement, index) => (
-                    <div key={index} className="placement-card">
-                      <div className="placement-header">
-                        <span className="placement-index">#{index + 1}</span>
-                        <button
-                          className="remove-placement-btn"
-                          onClick={() => handleRemoveDrawing(index)}
-                        >
-                          ✕
-                        </button>
-                      </div>
-
-                      <div className="placement-form">
-                        <div className="placement-field">
-                          <label>Drawing:</label>
-                          <select
-                            value={placement.drawingName}
-                            onChange={(e) => handleUpdatePlacement(index, 'drawingName', e.target.value)}
-                          >
-                            {drawings.map((drawing) => (
-                              <option key={drawing.name} value={drawing.name}>
-                                {drawing.name} {drawing.hasMapping ? '✓' : ''}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div className="placement-coords">
-                          <div className="placement-field">
-                            <label>X:</label>
-                            <input
-                              type="number"
-                              value={placement.x}
-                              onChange={(e) => handleUpdatePlacement(index, 'x', parseFloat(e.target.value))}
-                            />
-                          </div>
-                          <div className="placement-field">
-                            <label>Y:</label>
-                            <input
-                              type="number"
-                              value={placement.y}
-                              onChange={(e) => handleUpdatePlacement(index, 'y', parseFloat(e.target.value))}
-                            />
-                          </div>
-                          <div className="placement-field">
-                            <label>Width:</label>
-                            <input
-                              type="number"
-                              value={placement.width}
-                              onChange={(e) => handleUpdatePlacement(index, 'width', parseFloat(e.target.value))}
-                            />
-                          </div>
-                          <div className="placement-field">
-                            <label>Height:</label>
-                            <input
-                              type="number"
-                              value={placement.height}
-                              onChange={(e) => handleUpdatePlacement(index, 'height', parseFloat(e.target.value))}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                <div className="no-placements">
+                  <p>Please select a template first</p>
                 </div>
               )}
             </div>
