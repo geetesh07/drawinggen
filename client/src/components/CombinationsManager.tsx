@@ -56,6 +56,7 @@ function CombinationsManager() {
   const [drawingsMappings, setDrawingsMappings] = useState<{ [drawingName: string]: TemplateMapping }>({});
   const [isGenerating, setIsGenerating] = useState(false);
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const loadCombinations = async () => {
     try {
@@ -270,7 +271,7 @@ function CombinationsManager() {
 
   return (
     <div className="combinations-manager">
-      <div className="combinations-sidebar">
+      <div className={`combinations-sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <h2>Combinations</h2>
         <p className="combinations-subtitle">Connect templates with drawings</p>
         
@@ -303,6 +304,15 @@ function CombinationsManager() {
       </div>
 
       <div className="combinations-editor">
+        {(selectedCombination || isCreating) && (
+          <button 
+            className="sidebar-toggle-btn"
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+          >
+            {sidebarCollapsed ? '☰ Show Sidebar' : '✕ Hide Sidebar'}
+          </button>
+        )}
+        
         {!currentCombination && !isCreating ? (
           <div className="no-selection">
             <h2>👈 Select a combination to get started</h2>
