@@ -405,4 +405,42 @@ export class PDFService {
 
     await fs.writeJSON(mappingPath, mapping, { spaces: 2 });
   }
+
+  async renameDrawing(oldName: string, newName: string): Promise<void> {
+    const sanitizedOldName = this.sanitizeFilename(oldName);
+    const sanitizedNewName = this.sanitizeFilename(newName);
+
+    const oldExtension = path.extname(sanitizedOldName);
+    const newExtension = path.extname(sanitizedNewName);
+
+    if (oldExtension.toLowerCase() !== newExtension.toLowerCase()) {
+      throw new Error('Cannot change file extension when renaming');
+    }
+
+    const oldDrawingPath = path.join(this.drawingsDir, sanitizedOldName);
+    const newDrawingPath = path.join(this.drawingsDir, sanitizedNewName);
+
+    if (!await fs.pathExists(oldDrawingPath)) {
+      throw new Error(`Drawing not found: ${oldName}`);
+    }
+
+    if (await fs.pathExists(newDrawingPath)) {
+      throw new Error(`Drawing already exists with name: ${newName}`);
+    }
+
+    await fs.rename(oldDrawingPath, newDrawingPath);
+
+    const oldMappingPath = path.join(
+      this.drawingsMappingsDir,
+      sanitizedOldName.replace(/\.(pdf|png|jpg|jpeg|gif|bmp|svg)$/i, '.json')
+    );
+    const newMappingPath = path.join(
+      this.drawingsMappingsDir,
+      sanitizedNewName.replace(/\.(pdf|png|jpg|jpeg|gif|bmp|svg)$/i, '.json')
+    );
+
+    if (await fs.pathExists(oldMappingPath)) {
+      await fs.rename(oldMappingPath, newMappingPath);
+    }
+  }
 }

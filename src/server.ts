@@ -150,6 +150,23 @@ app.delete('/api/drawings/:name', async (req: Request, res: Response) => {
   }
 });
 
+app.put('/api/drawings/:name/rename', async (req: Request, res: Response) => {
+  try {
+    const { name } = req.params;
+    const { newName } = req.body;
+
+    if (!newName) {
+      return res.status(400).json({ error: 'New name is required' });
+    }
+
+    await pdfService.renameDrawing(name, newName);
+    res.json({ message: 'Drawing renamed successfully', newName });
+  } catch (error: any) {
+    console.error('Rename drawing error:', error);
+    res.status(500).json({ error: error.message || 'Failed to rename drawing' });
+  }
+});
+
 app.get('/api/drawing-mappings/:name', async (req: Request, res: Response) => {
   try {
     const { name } = req.params;

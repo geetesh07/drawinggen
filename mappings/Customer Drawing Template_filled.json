@@ -1,0 +1,14 @@
+{
+  "customer": {
+    "x": 644,
+    "y": 456,
+    "size": 12,
+    "align": "left",
+    "color": "#000000",
+    "fontFamily": "Helvetica",
+    "maxWidth": 127,
+    "maxHeight": 13,
+    "bold": false,
+    "italic": false
+  }
+}

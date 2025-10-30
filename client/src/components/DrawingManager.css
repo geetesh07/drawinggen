@@ -122,23 +122,38 @@
   font-weight: 500;
 }
 
-.delete-drawing-btn {
+.drawing-actions {
   position: absolute;
   top: 0.5rem;
   right: 0.5rem;
-  padding: 0.5rem;
-  background: transparent;
-  font-size: 1.2rem;
+  display: flex;
+  gap: 0.25rem;
   opacity: 0;
-  transition: all 0.2s;
-  border-radius: 4px;
+  transition: opacity 0.2s;
 }
 
-.drawing-card:hover .delete-drawing-btn {
-  opacity: 0.6;
+.drawing-card:hover .drawing-actions {
+  opacity: 1;
+}
+
+.rename-drawing-btn,
+.delete-drawing-btn {
+  padding: 0.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+  transition: all 0.2s;
+  border-radius: 4px;
+  border: 1px solid #e0e0e0;
+}
+
+.rename-drawing-btn:hover {
+  background: #e8f4ff;
+  border-color: #667eea;
+  transform: scale(1.1);
 }
 
 .delete-drawing-btn:hover {
-  opacity: 1 !important;
   background: #fee;
+  border-color: #f44;
+  transform: scale(1.1);
 }

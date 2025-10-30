@@ -83,6 +83,46 @@ function DrawingManager({ onSelectDrawing }: Props) {
     }
   };
 
+  const handleRename = async (e: React.MouseEvent, drawingName: string) => {
+    e.stopPropagation();
+    
+    const extension = drawingName.substring(drawingName.lastIndexOf('.'));
+    const nameWithoutExt = drawingName.substring(0, drawingName.lastIndexOf('.'));
+    
+    const newNameWithoutExt = prompt('Enter new name (without extension):', nameWithoutExt);
+    
+    if (!newNameWithoutExt) {
+      return;
+    }
+
+    const newName = newNameWithoutExt + extension;
+
+    try {
+      const response = await fetch(`/api/drawings/${drawingName}/rename`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ newName }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to rename drawing');
+      }
+      
+      if (selectedDrawing === drawingName) {
+        setSelectedDrawing(newName);
+      }
+      
+      await loadDrawings();
+      alert('Drawing renamed successfully!');
+    } catch (error: any) {
+      console.error('Rename failed:', error);
+      alert(error.message || 'Failed to rename drawing');
+    }
+  };
+
   const handleSelect = (name: string) => {
     setSelectedDrawing(name);
     if (onSelectDrawing) {
@@ -137,13 +177,22 @@ function DrawingManager({ onSelectDrawing }: Props) {
                   <span className="drawing-mapped-badge">Mapped</span>
                 )}
               </div>
-              <button
-                className="delete-drawing-btn"
-                onClick={(e) => handleDelete(e, drawing.name)}
-                title="Delete drawing"
-              >
-                🗑️
-              </button>
+              <div className="drawing-actions">
+                <button
+                  className="rename-drawing-btn"
+                  onClick={(e) => handleRename(e, drawing.name)}
+                  title="Rename drawing"
+                >
+                  ✏️
+                </button>
+                <button
+                  className="delete-drawing-btn"
+                  onClick={(e) => handleDelete(e, drawing.name)}
+                  title="Delete drawing"
+                >
+                  🗑️
+                </button>
+              </div>
             </div>
           ))
         )}
