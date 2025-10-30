@@ -1,5 +1,5 @@
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
-import { TemplateMapping, FieldMapping, DrawingInsertion } from './types';
+import { TemplateMapping, FieldMapping, DrawingInsertion, Combination, CombinationInfo } from './types';
 import fs from 'fs-extra';
 import path from 'path';
 
@@ -8,6 +8,7 @@ export class PDFService {
   private mappingsDir = path.join(process.cwd(), 'mappings');
   private drawingsDir = path.join(process.cwd(), 'drawings');
   private drawingsMappingsDir = path.join(process.cwd(), 'drawings_mappings');
+  private combinationsDir = path.join(process.cwd(), 'combinations');
   private outputDir = path.join(process.cwd(), 'output');
 
   constructor() {
@@ -15,6 +16,7 @@ export class PDFService {
     fs.ensureDirSync(this.mappingsDir);
     fs.ensureDirSync(this.drawingsDir);
     fs.ensureDirSync(this.drawingsMappingsDir);
+    fs.ensureDirSync(this.combinationsDir);
     fs.ensureDirSync(this.outputDir);
   }
 
@@ -441,6 +443,38 @@ export class PDFService {
 
     if (await fs.pathExists(oldMappingPath)) {
       await fs.rename(oldMappingPath, newMappingPath);
+    }
+  }
+
+  async listCombinations(): Promise<CombinationInfo[]> {
+    const files = await fs.readdir(this.combinationsDir);
+    const jsonFiles = files.filter(f => f.endsWith('.json'));
+    return jsonFiles.map(name => ({ name: name.replace('.json', '') }));
+  }
+
+  async getCombination(combinationName: string): Promise<Combination | null> {
+    const sanitizedName = this.sanitizeFilename(combinationName + '.json');
+    const combinationPath = path.join(this.combinationsDir, sanitizedName);
+
+    if (!await fs.pathExists(combinationPath)) {
+      return null;
+    }
+
+    return await fs.readJSON(combinationPath);
+  }
+
+  async saveCombination(combinationName: string, combination: Combination): Promise<void> {
+    const sanitizedName = this.sanitizeFilename(combinationName + '.json');
+    const combinationPath = path.join(this.combinationsDir, sanitizedName);
+    await fs.writeJSON(combinationPath, combination, { spaces: 2 });
+  }
+
+  async deleteCombination(combinationName: string): Promise<void> {
+    const sanitizedName = this.sanitizeFilename(combinationName + '.json');
+    const combinationPath = path.join(this.combinationsDir, sanitizedName);
+
+    if (await fs.pathExists(combinationPath)) {
+      await fs.remove(combinationPath);
     }
   }
 }

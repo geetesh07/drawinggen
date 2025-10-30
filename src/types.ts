@@ -62,3 +62,13 @@ export interface TemplateInfo {
   name: string;
   hasMapping: boolean;
 }
+
+export interface Combination {
+  name: string;
+  templateName: string;
+  drawingPlacements: DrawingPlacementArea[];
+}
+
+export interface CombinationInfo {
+  name: string;
+}

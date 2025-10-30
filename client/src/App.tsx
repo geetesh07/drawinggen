@@ -3,6 +3,7 @@ import TemplateList from './components/TemplateList';
 import PDFMapper from './components/PDFMapper';
 import TestGenerator from './components/TestGenerator';
 import DrawingManager from './components/DrawingManager';
+import CombinationsManager from './components/CombinationsManager';
 import './App.css';
 
 interface Template {
@@ -15,7 +16,7 @@ function App() {
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'mapper' | 'drawings' | 'test'>('mapper');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [mainView, setMainView] = useState<'templates' | 'drawings'>('templates');
+  const [mainView, setMainView] = useState<'templates' | 'drawings' | 'combinations'>('templates');
 
   const loadTemplates = async () => {
     try {
@@ -97,19 +98,27 @@ function App() {
           >
             Drawings
           </button>
+          <button
+            className={`main-view-tab ${mainView === 'combinations' ? 'active' : ''}`}
+            onClick={() => setMainView('combinations')}
+          >
+            Combinations
+          </button>
         </div>
       </header>
 
       <div className="container">
-        <div className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
-          <TemplateList
-            templates={templates}
-            selectedTemplate={selectedTemplate}
-            onSelect={setSelectedTemplate}
-            onUpload={handleUpload}
-            onDelete={handleDelete}
-          />
-        </div>
+        {mainView !== 'combinations' && (
+          <div className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+            <TemplateList
+              templates={templates}
+              selectedTemplate={selectedTemplate}
+              onSelect={setSelectedTemplate}
+              onUpload={handleUpload}
+              onDelete={handleDelete}
+            />
+          </div>
+        )}
 
         <div className="main-content">
           {mainView === 'templates' ? (
@@ -145,8 +154,10 @@ function App() {
                 <p>Upload a PDF template or select an existing one from the sidebar</p>
               </div>
             )
-          ) : (
+          ) : mainView === 'drawings' ? (
             <DrawingManager />
+          ) : (
+            <CombinationsManager />
           )}
         </div>
       </div>
