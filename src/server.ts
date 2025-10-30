@@ -278,6 +278,34 @@ app.delete('/api/combinations/:name', async (req: Request, res: Response) => {
   }
 });
 
+app.post('/api/generate-combination', async (req: Request, res: Response) => {
+  try {
+    const { combination, templateData, drawingsData } = req.body;
+
+    if (!combination) {
+      return res.status(400).json({ error: 'Combination name is required' });
+    }
+
+    if (!templateData) {
+      return res.status(400).json({ error: 'Template data is required' });
+    }
+
+    const pdfBuffer = await pdfService.generateWithCombination(
+      combination,
+      templateData,
+      drawingsData || {}
+    );
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Content-Disposition', `attachment; filename="${combination}_generated.pdf"`);
+    res.send(pdfBuffer);
+  } catch (error: any) {
+    console.error('Generate with combination error:', error);
+    res.status(500).json({ error: error.message || 'Failed to generate PDF' });
+  }
+});
+
 app.get('*', (req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, '../client/build/index.html'));
 });

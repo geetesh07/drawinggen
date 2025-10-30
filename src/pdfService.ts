@@ -477,4 +477,229 @@ export class PDFService {
       await fs.remove(combinationPath);
     }
   }
+
+  async generateWithCombination(
+    combinationName: string,
+    templateData: { [key: string]: string },
+    drawingsData: { [drawingName: string]: { [key: string]: string } }
+  ): Promise<Buffer> {
+    const combination = await this.getCombination(combinationName);
+    
+    if (!combination) {
+      throw new Error(`Combination not found: ${combinationName}`);
+    }
+
+    const templateBuffer = await this.getTemplate(combination.templateName);
+    const templatePdfDoc = await PDFDocument.load(templateBuffer);
+    const templateMapping = await this.getMapping(combination.templateName);
+    const firstPage = templatePdfDoc.getPages()[0];
+    const { height } = firstPage.getSize();
+
+    if (templateMapping) {
+      for (const [fieldName, fieldMapping] of Object.entries(templateMapping)) {
+        const textValue = templateData[fieldName];
+        if (!textValue) continue;
+
+        const fontSize = fieldMapping.size || 12;
+        const maxWidth = fieldMapping.maxWidth || 200;
+        const align = fieldMapping.align || 'left';
+        const colorHex = fieldMapping.color || '#000000';
+        const colorRgb = this.hexToRgb(colorHex);
+        const fontFamily = fieldMapping.fontFamily || 'Helvetica';
+        const isBold = fieldMapping.bold || false;
+        const isItalic = fieldMapping.italic || false;
+
+        const baseFamily = fontFamily.replace(/-Bold|-Oblique|-BoldOblique|-Italic|-BoldItalic/gi, '');
+
+        let finalFont: any;
+        if (baseFamily === 'Helvetica') {
+          if (isBold && isItalic) finalFont = StandardFonts.HelveticaBoldOblique;
+          else if (isBold) finalFont = StandardFonts.HelveticaBold;
+          else if (isItalic) finalFont = StandardFonts.HelveticaOblique;
+          else finalFont = StandardFonts.Helvetica;
+        } else if (baseFamily === 'Times-Roman') {
+          if (isBold && isItalic) finalFont = StandardFonts.TimesRomanBoldItalic;
+          else if (isBold) finalFont = StandardFonts.TimesRomanBold;
+          else if (isItalic) finalFont = StandardFonts.TimesRomanItalic;
+          else finalFont = StandardFonts.TimesRoman;
+        } else if (baseFamily === 'Courier') {
+          if (isBold && isItalic) finalFont = StandardFonts.CourierBoldOblique;
+          else if (isBold) finalFont = StandardFonts.CourierBold;
+          else if (isItalic) finalFont = StandardFonts.CourierOblique;
+          else finalFont = StandardFonts.Courier;
+        } else {
+          finalFont = StandardFonts.Helvetica;
+        }
+
+        const font = await templatePdfDoc.embedFont(finalFont);
+        const maxHeight = fieldMapping.maxHeight || 1000;
+        const lineHeight = fontSize + 2;
+        const textWidth = font.widthOfTextAtSize(textValue, fontSize);
+        const baselineY = fieldMapping.y + fontSize;
+
+        if (textWidth > maxWidth) {
+          const lines = this.wrapText(textValue, font, fontSize, maxWidth);
+          let currentY = baselineY;
+          for (const line of lines) {
+            const lineOffset = currentY - baselineY;
+            if (lineOffset + lineHeight > maxHeight) break;
+
+            let x = fieldMapping.x;
+            const y = height - currentY;
+            const lineWidth = font.widthOfTextAtSize(line, fontSize);
+
+            if (align === 'center') x = x + (maxWidth - lineWidth) / 2;
+            else if (align === 'right') x = x + maxWidth - lineWidth;
+
+            firstPage.drawText(line, {
+              x,
+              y,
+              size: fontSize,
+              font: font,
+              color: rgb(colorRgb.r, colorRgb.g, colorRgb.b),
+            });
+            currentY += lineHeight;
+          }
+        } else {
+          let x = fieldMapping.x;
+          const y = height - baselineY;
+
+          if (align === 'center') x = x + (maxWidth - textWidth) / 2;
+          else if (align === 'right') x = x + maxWidth - textWidth;
+
+          firstPage.drawText(textValue, {
+            x,
+            y,
+            size: fontSize,
+            font: font,
+            color: rgb(colorRgb.r, colorRgb.g, colorRgb.b),
+          });
+        }
+      }
+    }
+
+    for (const placement of combination.drawingPlacements) {
+      const drawingName = placement.drawingName;
+      const drawingBuffer = await this.getDrawing(drawingName);
+      const drawingMapping = await this.getDrawingMapping(drawingName);
+      const drawingData = drawingsData[drawingName] || {};
+      const drawingExt = path.extname(drawingName).toLowerCase();
+
+      if (drawingExt === '.pdf') {
+        const drawingPdfDoc = await PDFDocument.load(drawingBuffer.buffer);
+
+        if (drawingMapping) {
+          const drawingPages = drawingPdfDoc.getPages();
+          const drawingFirstPage = drawingPages[0];
+          const { height: drawingHeight } = drawingFirstPage.getSize();
+
+          for (const [fieldName, fieldMapping] of Object.entries(drawingMapping)) {
+            const textValue = drawingData[fieldName];
+            if (!textValue) continue;
+
+            const fontSize = fieldMapping.size || 12;
+            const maxWidth = fieldMapping.maxWidth || 200;
+            const align = fieldMapping.align || 'left';
+            const colorHex = fieldMapping.color || '#000000';
+            const colorRgb = this.hexToRgb(colorHex);
+            const fontFamily = fieldMapping.fontFamily || 'Helvetica';
+            const isBold = fieldMapping.bold || false;
+            const isItalic = fieldMapping.italic || false;
+
+            const baseFamily = fontFamily.replace(/-Bold|-Oblique|-BoldOblique|-Italic|-BoldItalic/gi, '');
+
+            let finalFont: any;
+            if (baseFamily === 'Helvetica') {
+              if (isBold && isItalic) finalFont = StandardFonts.HelveticaBoldOblique;
+              else if (isBold) finalFont = StandardFonts.HelveticaBold;
+              else if (isItalic) finalFont = StandardFonts.HelveticaOblique;
+              else finalFont = StandardFonts.Helvetica;
+            } else if (baseFamily === 'Times-Roman') {
+              if (isBold && isItalic) finalFont = StandardFonts.TimesRomanBoldItalic;
+              else if (isBold) finalFont = StandardFonts.TimesRomanBold;
+              else if (isItalic) finalFont = StandardFonts.TimesRomanItalic;
+              else finalFont = StandardFonts.TimesRoman;
+            } else if (baseFamily === 'Courier') {
+              if (isBold && isItalic) finalFont = StandardFonts.CourierBoldOblique;
+              else if (isBold) finalFont = StandardFonts.CourierBold;
+              else if (isItalic) finalFont = StandardFonts.CourierOblique;
+              else finalFont = StandardFonts.Courier;
+            } else {
+              finalFont = StandardFonts.Helvetica;
+            }
+
+            const font = await drawingPdfDoc.embedFont(finalFont);
+            const maxHeight = fieldMapping.maxHeight || 1000;
+            const lineHeight = fontSize + 2;
+            const textWidth = font.widthOfTextAtSize(textValue, fontSize);
+            const baselineY = fieldMapping.y + fontSize;
+
+            if (textWidth > maxWidth) {
+              const lines = this.wrapText(textValue, font, fontSize, maxWidth);
+              let currentY = baselineY;
+              for (const line of lines) {
+                const lineOffset = currentY - baselineY;
+                if (lineOffset + lineHeight > maxHeight) break;
+
+                let x = fieldMapping.x;
+                const y = drawingHeight - currentY;
+                const lineWidth = font.widthOfTextAtSize(line, fontSize);
+
+                if (align === 'center') x = x + (maxWidth - lineWidth) / 2;
+                else if (align === 'right') x = x + maxWidth - lineWidth;
+
+                drawingFirstPage.drawText(line, {
+                  x,
+                  y,
+                  size: fontSize,
+                  font: font,
+                  color: rgb(colorRgb.r, colorRgb.g, colorRgb.b),
+                });
+                currentY += lineHeight;
+              }
+            } else {
+              let x = fieldMapping.x;
+              const y = drawingHeight - baselineY;
+
+              if (align === 'center') x = x + (maxWidth - textWidth) / 2;
+              else if (align === 'right') x = x + maxWidth - textWidth;
+
+              drawingFirstPage.drawText(textValue, {
+                x,
+                y,
+                size: fontSize,
+                font: font,
+                color: rgb(colorRgb.r, colorRgb.g, colorRgb.b),
+              });
+            }
+          }
+        }
+
+        const [embeddedPage] = await templatePdfDoc.embedPdf(drawingPdfDoc, [0]);
+        firstPage.drawPage(embeddedPage, {
+          x: placement.x,
+          y: height - placement.y - placement.height,
+          width: placement.width,
+          height: placement.height,
+        });
+      } else if (['.png', '.jpg', '.jpeg'].includes(drawingExt)) {
+        let image;
+        if (drawingExt === '.png') {
+          image = await templatePdfDoc.embedPng(drawingBuffer.buffer);
+        } else {
+          image = await templatePdfDoc.embedJpg(drawingBuffer.buffer);
+        }
+
+        firstPage.drawImage(image, {
+          x: placement.x,
+          y: height - placement.y - placement.height,
+          width: placement.width,
+          height: placement.height,
+        });
+      }
+    }
+
+    const pdfBytes = await templatePdfDoc.save();
+    return Buffer.from(pdfBytes);
+  }
 }

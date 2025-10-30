@@ -24,9 +24,10 @@ interface TemplateMapping {
 interface Props {
   templateName: string;
   onMappingSaved: () => void;
+  isDrawing?: boolean;
 }
 
-function PDFMapper({ templateName, onMappingSaved }: Props) {
+function PDFMapper({ templateName, onMappingSaved, isDrawing = false }: Props) {
   const [mapping, setMapping] = useState<TemplateMapping>({});
   const [editingField, setEditingField] = useState<string | null>(null);
   const [newFieldName, setNewFieldName] = useState('');
@@ -37,7 +38,7 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
   const [bold, setBold] = useState(false);
   const [italic, setItalic] = useState(false);
   const [zoom, setZoom] = useState(1.5);
-  const [isDrawing, setIsDrawing] = useState(false);
+  const [isDrawingRect, setIsDrawingRect] = useState(false);
   const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(null);
   const [currentRect, setCurrentRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
   const [manualX, setManualX] = useState(0);
@@ -55,7 +56,7 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
     setEditingField(null);
     setNewFieldName('');
     setCurrentRect(null);
-    setIsDrawing(false);
+    setIsDrawingRect(false);
     setStartPos(null);
     loadMapping();
     loadPDF();
@@ -71,7 +72,8 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
 
   const loadMapping = async () => {
     try {
-      const response = await fetch(`/api/mappings/${templateName}`);
+      const endpoint = isDrawing ? `/api/drawing-mappings/${templateName}` : `/api/mappings/${templateName}`;
+      const response = await fetch(endpoint);
       if (response.ok) {
         const data = await response.json();
         setMapping(data);
@@ -84,7 +86,7 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
   };
 
   const loadPDF = async () => {
-    const url = `/api/templates/${templateName}`;
+    const url = isDrawing ? `/api/drawings/${templateName}` : `/api/templates/${templateName}`;
 
     try {
       const loadingTask = pdfjsLib.getDocument(url);
@@ -179,13 +181,13 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
     const canvasX = (e.clientX - rect.left) * scaleX;
     const canvasY = (e.clientY - rect.top) * scaleY;
 
-    setIsDrawing(true);
+    setIsDrawingRect(true);
     setStartPos({ x: canvasX, y: canvasY });
     setCurrentRect({ x: canvasX, y: canvasY, width: 0, height: 0 });
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (!isDrawing || !startPos) return;
+    if (!isDrawingRect || !startPos) return;
 
     const canvas = overlayCanvasRef.current;
     if (!canvas) return;
@@ -216,7 +218,7 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
   };
 
   const handleMouseUp = () => {
-    if (!isDrawing || !currentRect || !startPos) return;
+    if (!isDrawingRect || !currentRect || !startPos) return;
 
     let actualX = Math.round(currentRect.x / zoom);
     let actualY = Math.round(currentRect.y / zoom);
@@ -232,7 +234,7 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
 
     if (actualWidth < 10 || actualHeight < 5) {
       alert('Area too small. Please draw a larger selection area.');
-      setIsDrawing(false);
+      setIsDrawingRect(false);
       setStartPos(null);
       setCurrentRect(null);
       drawFieldBoxes();
@@ -276,7 +278,7 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
       setNewFieldName('');
     }
     setEditingField(null);
-    setIsDrawing(false);
+    setIsDrawingRect(false);
     setStartPos(null);
     setCurrentRect(null);
   };
@@ -292,7 +294,8 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
 
   const handleSaveMapping = async () => {
     try {
-      const response = await fetch(`/api/mappings/${templateName}`, {
+      const endpoint = isDrawing ? `/api/drawing-mappings/${templateName}` : `/api/mappings/${templateName}`;
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(mapping),
@@ -363,9 +366,9 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
               onMouseLeave={() => {
-                if (isDrawing) handleMouseUp();
+                if (isDrawingRect) handleMouseUp();
               }}
-              style={{ position: 'absolute', cursor: isDrawing ? 'crosshair' : 'crosshair' }}
+              style={{ position: 'absolute', cursor: isDrawingRect ? 'crosshair' : 'crosshair' }}
             />
           </div>
         </div>

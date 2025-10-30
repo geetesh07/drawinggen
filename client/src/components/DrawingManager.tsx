@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import DrawingMapper from './DrawingMapper';
 import './DrawingManager.css';
 
 interface Drawing {
@@ -131,72 +132,94 @@ function DrawingManager({ onSelectDrawing }: Props) {
   };
 
   return (
-    <div className="drawing-manager">
-      <div className="drawing-header">
-        <h2>Drawings</h2>
-        <p className="drawing-subtitle">Upload and manage technical drawings for templates</p>
-        <button
-          className="upload-drawing-btn"
-          onClick={() => fileInputRef.current?.click()}
-        >
-          + Upload Drawing
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".pdf,.png,.jpg,.jpeg,.gif,.svg"
-          onChange={handleFileChange}
-          style={{ display: 'none' }}
-        />
-      </div>
-
-      <div className="drawing-grid">
-        {drawings.length === 0 ? (
-          <div className="no-drawings">
-            <p>No drawings yet</p>
-            <p className="hint">Upload PDF, PNG, JPG, GIF, or SVG files</p>
-          </div>
-        ) : (
-          drawings.map((drawing) => (
-            <div
-              key={drawing.name}
-              className={`drawing-card ${selectedDrawing === drawing.name ? 'selected' : ''}`}
-              onClick={() => handleSelect(drawing.name)}
+    <div className="drawing-manager-container">
+      {!selectedDrawing ? (
+        <div className="drawing-manager">
+          <div className="drawing-header">
+            <h2>Drawings</h2>
+            <p className="drawing-subtitle">Upload and manage technical drawings for templates</p>
+            <button
+              className="upload-drawing-btn"
+              onClick={() => fileInputRef.current?.click()}
             >
-              <div className="drawing-preview">
-                {drawing.type === 'pdf' && <span className="drawing-icon">📄</span>}
-                {drawing.type === 'image' && <span className="drawing-icon">🖼️</span>}
-                {drawing.type === 'svg' && <span className="drawing-icon">🎨</span>}
+              + Upload Drawing
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".pdf,.png,.jpg,.jpeg,.gif,.svg"
+              onChange={handleFileChange}
+              style={{ display: 'none' }}
+            />
+          </div>
+
+          <div className="drawing-grid">
+            {drawings.length === 0 ? (
+              <div className="no-drawings">
+                <p>No drawings yet</p>
+                <p className="hint">Upload PDF, PNG, JPG, GIF, or SVG files</p>
               </div>
-              <div className="drawing-info">
-                <div className="drawing-name">{drawing.name}</div>
-                <div className="drawing-type">
-                  {drawing.type.toUpperCase()}
+            ) : (
+              drawings.map((drawing) => (
+                <div
+                  key={drawing.name}
+                  className={`drawing-card ${selectedDrawing === drawing.name ? 'selected' : ''}`}
+                  onClick={() => handleSelect(drawing.name)}
+                >
+                  <div className="drawing-preview">
+                    {drawing.type === 'pdf' && <span className="drawing-icon">📄</span>}
+                    {drawing.type === 'image' && <span className="drawing-icon">🖼️</span>}
+                    {drawing.type === 'svg' && <span className="drawing-icon">🎨</span>}
+                  </div>
+                  <div className="drawing-info">
+                    <div className="drawing-name">{drawing.name}</div>
+                    <div className="drawing-type">
+                      {drawing.type.toUpperCase()}
+                    </div>
+                    {drawing.hasMapping && (
+                      <span className="drawing-mapped-badge">Mapped</span>
+                    )}
+                  </div>
+                  <div className="drawing-actions">
+                    <button
+                      className="rename-drawing-btn"
+                      onClick={(e) => handleRename(e, drawing.name)}
+                      title="Rename drawing"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      className="delete-drawing-btn"
+                      onClick={(e) => handleDelete(e, drawing.name)}
+                      title="Delete drawing"
+                    >
+                      🗑️
+                    </button>
+                  </div>
                 </div>
-                {drawing.hasMapping && (
-                  <span className="drawing-mapped-badge">Mapped</span>
-                )}
-              </div>
-              <div className="drawing-actions">
-                <button
-                  className="rename-drawing-btn"
-                  onClick={(e) => handleRename(e, drawing.name)}
-                  title="Rename drawing"
-                >
-                  ✏️
-                </button>
-                <button
-                  className="delete-drawing-btn"
-                  onClick={(e) => handleDelete(e, drawing.name)}
-                  title="Delete drawing"
-                >
-                  🗑️
-                </button>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
+              ))
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="drawing-mapper-view">
+          <div className="drawing-mapper-header">
+            <button
+              className="back-to-list-btn"
+              onClick={() => {
+                setSelectedDrawing(null);
+              }}
+            >
+              ← Back to Drawings
+            </button>
+            <h2>{selectedDrawing}</h2>
+          </div>
+          <DrawingMapper
+            drawingName={selectedDrawing}
+            onMappingSaved={() => loadDrawings()}
+          />
+        </div>
+      )}
     </div>
   );
 }
