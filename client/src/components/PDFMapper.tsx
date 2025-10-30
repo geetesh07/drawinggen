@@ -40,11 +40,23 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
   const [isDrawing, setIsDrawing] = useState(false);
   const [startPos, setStartPos] = useState<{ x: number; y: number } | null>(null);
   const [currentRect, setCurrentRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
+  const [manualX, setManualX] = useState(0);
+  const [manualY, setManualY] = useState(0);
+  const [manualWidth, setManualWidth] = useState(200);
+  const [manualHeight, setManualHeight] = useState(40);
+  const [snapToGrid, setSnapToGrid] = useState(false);
+  const [gridSize, setGridSize] = useState(10);
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    setMapping({});
+    setEditingField(null);
+    setNewFieldName('');
+    setCurrentRect(null);
+    setIsDrawing(false);
+    setStartPos(null);
     loadMapping();
     loadPDF();
   }, [templateName]);
@@ -198,13 +210,25 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
     drawFieldBoxes();
   };
 
+  const snapToGridValue = (value: number): number => {
+    if (!snapToGrid) return Math.round(value);
+    return Math.round(value / gridSize) * gridSize;
+  };
+
   const handleMouseUp = () => {
     if (!isDrawing || !currentRect || !startPos) return;
 
-    const actualX = Math.round(currentRect.x / zoom);
-    const actualY = Math.round(currentRect.y / zoom);
-    const actualWidth = Math.round(currentRect.width / zoom);
-    const actualHeight = Math.round(currentRect.height / zoom);
+    let actualX = Math.round(currentRect.x / zoom);
+    let actualY = Math.round(currentRect.y / zoom);
+    let actualWidth = Math.round(currentRect.width / zoom);
+    let actualHeight = Math.round(currentRect.height / zoom);
+
+    if (snapToGrid) {
+      actualX = snapToGridValue(actualX);
+      actualY = snapToGridValue(actualY);
+      actualWidth = snapToGridValue(actualWidth);
+      actualHeight = snapToGridValue(actualHeight);
+    }
 
     if (actualWidth < 10 || actualHeight < 5) {
       alert('Area too small. Please draw a larger selection area.');
@@ -215,19 +239,33 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
       return;
     }
 
+    setManualX(actualX);
+    setManualY(actualY);
+    setManualWidth(actualWidth);
+    setManualHeight(actualHeight);
+
+    applyFieldMapping(actualX, actualY, actualWidth, actualHeight);
+  };
+
+  const applyFieldMapping = (x: number, y: number, width: number, height: number) => {
     const targetFieldName = editingField || newFieldName;
+    
+    if (!targetFieldName.trim()) {
+      alert('Please enter a field name first');
+      return;
+    }
 
     const newMapping = {
       ...mapping,
       [targetFieldName]: {
-        x: actualX,
-        y: actualY,
+        x: x,
+        y: y,
         size: fontSize,
         align: alignment,
         color: textColor,
         fontFamily: fontFamily,
-        maxWidth: actualWidth,
-        maxHeight: actualHeight,
+        maxWidth: width,
+        maxHeight: height,
         bold: bold,
         italic: italic,
       },
@@ -241,6 +279,10 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
     setIsDrawing(false);
     setStartPos(null);
     setCurrentRect(null);
+  };
+
+  const handleManualApply = () => {
+    applyFieldMapping(manualX, manualY, manualWidth, manualHeight);
   };
 
   const handleSaveMapping = async () => {
@@ -415,10 +457,84 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
               </label>
             </div>
 
+            <div className="section-divider">
+              <h4>Position & Size</h4>
+            </div>
+
+            <div className="control-row">
+              <div className="control-group">
+                <label>X Position:</label>
+                <input
+                  type="number"
+                  value={manualX}
+                  onChange={(e) => setManualX(Number(e.target.value))}
+                  min="0"
+                />
+              </div>
+              <div className="control-group">
+                <label>Y Position:</label>
+                <input
+                  type="number"
+                  value={manualY}
+                  onChange={(e) => setManualY(Number(e.target.value))}
+                  min="0"
+                />
+              </div>
+            </div>
+
+            <div className="control-row">
+              <div className="control-group">
+                <label>Width:</label>
+                <input
+                  type="number"
+                  value={manualWidth}
+                  onChange={(e) => setManualWidth(Number(e.target.value))}
+                  min="10"
+                />
+              </div>
+              <div className="control-group">
+                <label>Height:</label>
+                <input
+                  type="number"
+                  value={manualHeight}
+                  onChange={(e) => setManualHeight(Number(e.target.value))}
+                  min="5"
+                />
+              </div>
+            </div>
+
+            <div className="control-row">
+              <div className="control-group">
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={snapToGrid}
+                    onChange={(e) => setSnapToGrid(e.target.checked)}
+                  />
+                  <span>Snap to Grid</span>
+                </label>
+              </div>
+              <div className="control-group">
+                <label>Grid Size:</label>
+                <input
+                  type="number"
+                  value={gridSize}
+                  onChange={(e) => setGridSize(Number(e.target.value))}
+                  min="5"
+                  max="50"
+                  disabled={!snapToGrid}
+                />
+              </div>
+            </div>
+
+            <button className="apply-manual-btn" onClick={handleManualApply}>
+              ✓ Apply Position & Size
+            </button>
+
             <div className="instruction">
               {editingField 
-                ? '🎯 Drag on PDF to redefine area for this field'
-                : '🎯 Drag on PDF to select field area (width × height)'}
+                ? '🎯 Drag on PDF or use manual inputs to redefine field area'
+                : '🎯 Drag on PDF or use manual inputs to define field area'}
             </div>
           </div>
 

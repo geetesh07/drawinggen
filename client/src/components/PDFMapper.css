@@ -159,6 +159,39 @@
   cursor: pointer;
 }
 
+.section-divider {
+  margin: 1.5rem 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.section-divider h4 {
+  margin: 0;
+  color: #555;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.apply-manual-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background: #10b981;
+  color: white;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  margin-top: 1rem;
+  transition: all 0.2s;
+}
+
+.apply-manual-btn:hover {
+  background: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
 .instruction {
   margin-top: 1rem;
   padding: 0.75rem;
