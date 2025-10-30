@@ -47,9 +47,12 @@ function PDFMapper({ templateName, onMappingSaved, isDrawing = false }: Props) {
   const [manualHeight, setManualHeight] = useState(40);
   const [snapToGrid, setSnapToGrid] = useState(false);
   const [gridSize, setGridSize] = useState(10);
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState<{ x: number; y: number; scrollLeft: number; scrollTop: number } | null>(null);
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
+  const viewerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMapping({});
@@ -166,6 +169,10 @@ function PDFMapper({ templateName, onMappingSaved, isDrawing = false }: Props) {
   };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (e.button === 1) {
+      return;
+    }
+    
     if (!newFieldName.trim() && !editingField) {
       alert('Please enter a field name first');
       return;
@@ -348,28 +355,68 @@ function PDFMapper({ templateName, onMappingSaved, isDrawing = false }: Props) {
     setItalic(false);
   };
 
+  const handleViewerMouseDown = (e: React.MouseEvent) => {
+    if (e.button === 2 || !viewerRef.current) return;
+    
+    if (e.button === 1) {
+      const viewer = viewerRef.current;
+      setIsPanning(true);
+      setPanStart({
+        x: e.clientX,
+        y: e.clientY,
+        scrollLeft: viewer.scrollLeft,
+        scrollTop: viewer.scrollTop
+      });
+      e.preventDefault();
+    }
+  };
+
+  const handleViewerMouseMove = (e: React.MouseEvent) => {
+    if (!isPanning || !panStart || !viewerRef.current) return;
+
+    const dx = e.clientX - panStart.x;
+    const dy = e.clientY - panStart.y;
+    
+    viewerRef.current.scrollLeft = panStart.scrollLeft - dx;
+    viewerRef.current.scrollTop = panStart.scrollTop - dy;
+  };
+
+  const handleViewerMouseUp = () => {
+    setIsPanning(false);
+    setPanStart(null);
+  };
+
   return (
     <div className="pdf-mapper">
       <div className="mapper-content">
-        <div className="pdf-viewer">
+        <div 
+          ref={viewerRef}
+          className={`pdf-viewer ${isPanning ? 'panning' : ''}`}
+          onMouseDown={handleViewerMouseDown}
+          onMouseMove={handleViewerMouseMove}
+          onMouseUp={handleViewerMouseUp}
+          onMouseLeave={handleViewerMouseUp}
+        >
           <div className="zoom-controls">
             <button onClick={() => setZoom(Math.max(0.5, zoom - 0.25))}>🔍-</button>
             <span>{Math.round(zoom * 100)}%</span>
             <button onClick={() => setZoom(Math.min(4, zoom + 0.25))}>🔍+</button>
             <button onClick={() => setZoom(1.5)}>Reset</button>
           </div>
-          <div className="pdf-container">
-            <canvas ref={canvasRef} style={{ position: 'absolute' }} />
-            <canvas 
-              ref={overlayCanvasRef}
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={() => {
-                if (isDrawingRect) handleMouseUp();
-              }}
-              style={{ position: 'absolute', cursor: isDrawingRect ? 'crosshair' : 'crosshair' }}
-            />
+          <div className="pdf-container-wrapper">
+            <div className="pdf-container">
+              <canvas ref={canvasRef} style={{ position: 'absolute' }} />
+              <canvas 
+                ref={overlayCanvasRef}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={() => {
+                  if (isDrawingRect) handleMouseUp();
+                }}
+                style={{ position: 'absolute', cursor: isDrawingRect ? 'crosshair' : 'crosshair' }}
+              />
+            </div>
           </div>
         </div>
 

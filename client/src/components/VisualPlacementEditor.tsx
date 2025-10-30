@@ -27,9 +27,12 @@ function VisualPlacementEditor({ templateName, placements, onPlacementsChange, d
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState<{ x: number; y: number; scrollLeft: number; scrollTop: number } | null>(null);
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadPDF();
@@ -117,6 +120,10 @@ function VisualPlacementEditor({ templateName, placements, onPlacementsChange, d
   };
 
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (e.button === 1) {
+      return;
+    }
+    
     const canvas = overlayCanvasRef.current;
     if (!canvas) return;
 
@@ -225,6 +232,37 @@ function VisualPlacementEditor({ templateName, placements, onPlacementsChange, d
     onPlacementsChange(newPlacements);
   };
 
+  const handleContainerMouseDown = (e: React.MouseEvent) => {
+    if (e.button === 2 || !containerRef.current) return;
+    
+    if (e.button === 1) {
+      const container = containerRef.current;
+      setIsPanning(true);
+      setPanStart({
+        x: e.clientX,
+        y: e.clientY,
+        scrollLeft: container.scrollLeft,
+        scrollTop: container.scrollTop
+      });
+      e.preventDefault();
+    }
+  };
+
+  const handleContainerMouseMove = (e: React.MouseEvent) => {
+    if (!isPanning || !panStart || !containerRef.current) return;
+
+    const dx = e.clientX - panStart.x;
+    const dy = e.clientY - panStart.y;
+    
+    containerRef.current.scrollLeft = panStart.scrollLeft - dx;
+    containerRef.current.scrollTop = panStart.scrollTop - dy;
+  };
+
+  const handleContainerMouseUp = () => {
+    setIsPanning(false);
+    setPanStart(null);
+  };
+
   return (
     <div className="visual-placement-editor">
       <div className="placement-toolbar">
@@ -324,20 +362,29 @@ function VisualPlacementEditor({ templateName, placements, onPlacementsChange, d
         </div>
       )}
 
-      <div className="canvas-container">
-        <canvas ref={canvasRef} className="pdf-canvas" />
-        <canvas
-          ref={overlayCanvasRef}
-          className="overlay-canvas"
-          onMouseDown={handleCanvasMouseDown}
-          onMouseMove={handleCanvasMouseMove}
-          onMouseUp={handleCanvasMouseUp}
-          onMouseLeave={handleCanvasMouseUp}
-        />
+      <div 
+        ref={containerRef}
+        className={`canvas-container ${isPanning ? 'panning' : ''}`}
+        onMouseDown={handleContainerMouseDown}
+        onMouseMove={handleContainerMouseMove}
+        onMouseUp={handleContainerMouseUp}
+        onMouseLeave={handleContainerMouseUp}
+      >
+        <div className="canvas-wrapper">
+          <canvas ref={canvasRef} className="pdf-canvas" />
+          <canvas
+            ref={overlayCanvasRef}
+            className="overlay-canvas"
+            onMouseDown={handleCanvasMouseDown}
+            onMouseMove={handleCanvasMouseMove}
+            onMouseUp={handleCanvasMouseUp}
+            onMouseLeave={handleCanvasMouseUp}
+          />
+        </div>
       </div>
 
       <div className="placement-help">
-        <p>💡 <strong>Tip:</strong> Click and drag rectangles to position drawings. Drag the handle in the bottom-right corner to resize.</p>
+        <p>💡 <strong>Tip:</strong> Click and drag to position drawings. Middle-click and drag (or scroll wheel click) to pan. Use corner handle to resize.</p>
       </div>
     </div>
   );

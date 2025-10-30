@@ -1,8 +1,8 @@
 .visual-placement-editor {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 280px);
-  min-height: 500px;
+  height: calc(100vh - 200px);
+  min-height: 600px;
   background: #f5f5f5;
   border-radius: 8px;
   overflow: hidden;
@@ -135,26 +135,44 @@
 .canvas-container {
   flex: 1;
   position: relative;
-  overflow: hidden;
+  overflow: auto;
   background: #2a2a2a;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1rem;
+  cursor: grab;
+}
+
+.canvas-container.panning {
+  cursor: grabbing;
+}
+
+.canvas-wrapper {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
 }
 
 .pdf-canvas {
-  position: absolute;
+  display: block;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 .overlay-canvas {
   position: absolute;
+  top: 0;
+  left: 0;
   cursor: crosshair;
+  pointer-events: all;
 }
 
-.overlay-canvas:active {
+.overlay-canvas:active:not(.panning) {
   cursor: move;
+}
+
+.canvas-container.panning .overlay-canvas {
+  pointer-events: none;
 }
 
 .placement-help {

@@ -20,6 +20,15 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  cursor: default;
+}
+
+.pdf-viewer.panning {
+  cursor: grabbing;
+}
+
+.pdf-viewer.panning canvas {
+  pointer-events: none;
 }
 
 .zoom-controls {
@@ -61,11 +70,16 @@
   text-align: center;
 }
 
+.pdf-container-wrapper {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
 .pdf-container {
   position: relative;
   display: block;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  flex-shrink: 0;
 }
 
 .pdf-container canvas {

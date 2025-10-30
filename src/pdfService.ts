@@ -683,11 +683,30 @@ export class PDFService {
         }
 
         const [embeddedPage] = await templatePdfDoc.embedPdf(drawingPdfDoc, [0]);
+        
+        const drawingWidth = embeddedPage.width;
+        const drawingHeight = embeddedPage.height;
+        const drawingAspectRatio = drawingWidth / drawingHeight;
+        
+        const placementAspectRatio = placement.width / placement.height;
+        let finalWidth = placement.width;
+        let finalHeight = placement.height;
+        let offsetX = 0;
+        let offsetY = 0;
+        
+        if (drawingAspectRatio > placementAspectRatio) {
+          finalHeight = placement.width / drawingAspectRatio;
+          offsetY = (placement.height - finalHeight) / 2;
+        } else {
+          finalWidth = placement.height * drawingAspectRatio;
+          offsetX = (placement.width - finalWidth) / 2;
+        }
+        
         firstPage.drawPage(embeddedPage, {
-          x: placement.x,
-          y: height - placement.y - placement.height,
-          width: placement.width,
-          height: placement.height,
+          x: placement.x + offsetX,
+          y: height - placement.y - placement.height + offsetY,
+          width: finalWidth,
+          height: finalHeight,
         });
       } else if (['.png', '.jpg', '.jpeg'].includes(drawingExt)) {
         let image;
@@ -697,11 +716,29 @@ export class PDFService {
           image = await templatePdfDoc.embedJpg(drawingBuffer.buffer);
         }
 
+        const imageWidth = image.width;
+        const imageHeight = image.height;
+        const imageAspectRatio = imageWidth / imageHeight;
+        
+        const placementAspectRatio = placement.width / placement.height;
+        let finalWidth = placement.width;
+        let finalHeight = placement.height;
+        let offsetX = 0;
+        let offsetY = 0;
+        
+        if (imageAspectRatio > placementAspectRatio) {
+          finalHeight = placement.width / imageAspectRatio;
+          offsetY = (placement.height - finalHeight) / 2;
+        } else {
+          finalWidth = placement.height * imageAspectRatio;
+          offsetX = (placement.width - finalWidth) / 2;
+        }
+
         firstPage.drawImage(image, {
-          x: placement.x,
-          y: height - placement.y - placement.height,
-          width: placement.width,
-          height: placement.height,
+          x: placement.x + offsetX,
+          y: height - placement.y - placement.height + offsetY,
+          width: finalWidth,
+          height: finalHeight,
         });
       }
     }
