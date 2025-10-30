@@ -30,6 +30,16 @@ interface DrawingInfo {
   hasMapping: boolean;
 }
 
+interface FieldMapping {
+  x: number;
+  y: number;
+  size: number;
+}
+
+interface TemplateMapping {
+  [fieldName: string]: FieldMapping;
+}
+
 function CombinationsManager() {
   const [combinations, setCombinations] = useState<CombinationInfo[]>([]);
   const [selectedCombination, setSelectedCombination] = useState<string | null>(null);
@@ -38,6 +48,13 @@ function CombinationsManager() {
   const [newCombinationName, setNewCombinationName] = useState('');
   const [templates, setTemplates] = useState<TemplateInfo[]>([]);
   const [drawings, setDrawings] = useState<DrawingInfo[]>([]);
+  const [viewMode, setViewMode] = useState<'edit' | 'test'>('edit');
+  const [templateData, setTemplateData] = useState<{ [key: string]: string }>({});
+  const [drawingsData, setDrawingsData] = useState<{ [drawingName: string]: { [key: string]: string } }>({});
+  const [templateMapping, setTemplateMapping] = useState<TemplateMapping>({});
+  const [drawingsMappings, setDrawingsMappings] = useState<{ [drawingName: string]: TemplateMapping }>({});
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
 
   const loadCombinations = async () => {
     try {
@@ -78,13 +95,101 @@ function CombinationsManager() {
   const handleSelectCombination = async (name: string) => {
     setSelectedCombination(name);
     setIsCreating(false);
+    setViewMode('edit');
+    setPdfPreviewUrl(null);
     
     try {
       const response = await fetch(`/api/combinations/${name}`);
       const data = await response.json();
       setCurrentCombination(data);
+      await loadMappingsForCombination(data);
     } catch (error) {
       console.error('Failed to load combination:', error);
+    }
+  };
+
+  const loadMappingsForCombination = async (combination: Combination) => {
+    try {
+      const templateResp = await fetch(`/api/mappings/${combination.templateName}`);
+      if (templateResp.ok) {
+        const tMapping = await templateResp.json();
+        setTemplateMapping(tMapping);
+        
+        const initialTemplateData: { [key: string]: string } = {};
+        Object.keys(tMapping).forEach((field) => {
+          initialTemplateData[field] = '';
+        });
+        setTemplateData(initialTemplateData);
+      }
+
+      const drawingMappingsTemp: { [drawingName: string]: TemplateMapping } = {};
+      const initialDrawingsData: { [drawingName: string]: { [key: string]: string } } = {};
+
+      for (const placement of combination.drawingPlacements) {
+        const drawingResp = await fetch(`/api/drawing-mappings/${placement.drawingName}`);
+        if (drawingResp.ok) {
+          const dMapping = await drawingResp.json();
+          drawingMappingsTemp[placement.drawingName] = dMapping;
+          
+          const initialDrawingData: { [key: string]: string } = {};
+          Object.keys(dMapping).forEach((field) => {
+            initialDrawingData[field] = '';
+          });
+          initialDrawingsData[placement.drawingName] = initialDrawingData;
+        } else {
+          initialDrawingsData[placement.drawingName] = {};
+        }
+      }
+
+      setDrawingsMappings(drawingMappingsTemp);
+      setDrawingsData(initialDrawingsData);
+    } catch (error) {
+      console.error('Failed to load mappings:', error);
+    }
+  };
+
+  const handleGenerate = async () => {
+    if (!selectedCombination) return;
+
+    setIsGenerating(true);
+    try {
+      const response = await fetch('/api/generate-combination', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          combination: selectedCombination,
+          templateData: templateData,
+          drawingsData: drawingsData,
+        }),
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        
+        if (pdfPreviewUrl) {
+          URL.revokeObjectURL(pdfPreviewUrl);
+        }
+        
+        const url = URL.createObjectURL(blob);
+        setPdfPreviewUrl(url);
+      } else {
+        const error = await response.json();
+        alert(`Failed to generate PDF: ${error.error}`);
+      }
+    } catch (error) {
+      console.error('Generation error:', error);
+      alert('Failed to generate PDF');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleDownload = () => {
+    if (pdfPreviewUrl) {
+      const link = document.createElement('a');
+      link.href = pdfPreviewUrl;
+      link.download = `${selectedCombination}_generated.pdf`;
+      link.click();
     }
   };
 
@@ -175,6 +280,7 @@ function CombinationsManager() {
       setIsCreating(false);
       setSelectedCombination(name);
       setCurrentCombination(combinationToSave);
+      await loadMappingsForCombination(combinationToSave);
     } catch (error) {
       console.error('Save failed:', error);
       alert('Failed to save combination');
@@ -248,6 +354,27 @@ function CombinationsManager() {
             <div className="editor-header">
               <h2>{isCreating ? 'New Combination' : currentCombination?.name}</h2>
               <div className="editor-actions">
+                {!isCreating && (
+                  <div className="view-mode-tabs">
+                    <button
+                      className={`mode-tab ${viewMode === 'edit' ? 'active' : ''}`}
+                      onClick={() => setViewMode('edit')}
+                    >
+                      ⚙️ Edit
+                    </button>
+                    <button
+                      className={`mode-tab ${viewMode === 'test' ? 'active' : ''}`}
+                      onClick={() => {
+                        setViewMode('test');
+                        if (currentCombination) {
+                          loadMappingsForCombination(currentCombination);
+                        }
+                      }}
+                    >
+                      🧪 Test & Preview
+                    </button>
+                  </div>
+                )}
                 <button className="save-btn" onClick={handleSave}>
                   💾 Save
                 </button>
@@ -259,20 +386,22 @@ function CombinationsManager() {
               </div>
             </div>
 
-            {isCreating && (
-              <div className="form-group">
-                <label>Combination Name:</label>
-                <input
-                  type="text"
-                  value={newCombinationName}
-                  onChange={(e) => setNewCombinationName(e.target.value)}
-                  placeholder="e.g., Customer Drawing Package"
-                  className="combination-name-input"
-                />
-              </div>
-            )}
+            {viewMode === 'edit' ? (
+              <>
+                {isCreating && (
+                  <div className="form-group">
+                    <label>Combination Name:</label>
+                    <input
+                      type="text"
+                      value={newCombinationName}
+                      onChange={(e) => setNewCombinationName(e.target.value)}
+                      placeholder="e.g., Customer Drawing Package"
+                      className="combination-name-input"
+                    />
+                  </div>
+                )}
 
-            <div className="form-group">
+                <div className="form-group">
               <label>Template:</label>
               <select
                 value={currentCombination?.templateName || ''}
@@ -372,6 +501,109 @@ function CombinationsManager() {
                 </div>
               )}
             </div>
+              </>
+            ) : (
+              <div className="test-layout">
+                <div className="test-sidebar">
+                  <div className="test-header">
+                    <h3>Test Combination</h3>
+                    <p>Fill in data for template and drawings</p>
+                  </div>
+
+                  <div className="test-form">
+                    {Object.keys(templateMapping).length > 0 && (
+                      <div className="test-section">
+                        <h4>Template Fields ({currentCombination?.templateName})</h4>
+                        {Object.keys(templateMapping).map((fieldName) => (
+                          <div key={fieldName} className="form-group">
+                            <label>{fieldName}</label>
+                            <input
+                              type="text"
+                              value={templateData[fieldName] || ''}
+                              onChange={(e) => setTemplateData({ ...templateData, [fieldName]: e.target.value })}
+                              placeholder={`Enter ${fieldName}`}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {currentCombination?.drawingPlacements.map((placement) => {
+                      const drawingMapping = drawingsMappings[placement.drawingName];
+                      if (!drawingMapping || Object.keys(drawingMapping).length === 0) {
+                        return null;
+                      }
+
+                      return (
+                        <div key={placement.drawingName} className="test-section">
+                          <h4>Drawing: {placement.drawingName}</h4>
+                          {Object.keys(drawingMapping).map((fieldName) => (
+                            <div key={fieldName} className="form-group">
+                              <label>{fieldName}</label>
+                              <input
+                                type="text"
+                                value={drawingsData[placement.drawingName]?.[fieldName] || ''}
+                                onChange={(e) => {
+                                  const newDrawingsData = { ...drawingsData };
+                                  if (!newDrawingsData[placement.drawingName]) {
+                                    newDrawingsData[placement.drawingName] = {};
+                                  }
+                                  newDrawingsData[placement.drawingName][fieldName] = e.target.value;
+                                  setDrawingsData(newDrawingsData);
+                                }}
+                                placeholder={`Enter ${fieldName}`}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="test-actions">
+                    <button
+                      className="generate-btn"
+                      onClick={handleGenerate}
+                      disabled={isGenerating}
+                    >
+                      {isGenerating ? '⏳ Generating...' : '🎨 Generate Preview'}
+                    </button>
+                    {pdfPreviewUrl && (
+                      <button
+                        className="download-btn"
+                        onClick={handleDownload}
+                      >
+                        📥 Download PDF
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="test-preview">
+                  {pdfPreviewUrl ? (
+                    <div className="pdf-preview-container">
+                      <div className="preview-header">
+                        <h4>📄 PDF Preview</h4>
+                        <p>Template with drawings at specified positions</p>
+                      </div>
+                      <iframe
+                        src={pdfPreviewUrl}
+                        className="pdf-preview-frame"
+                        title="PDF Preview"
+                      />
+                    </div>
+                  ) : (
+                    <div className="no-preview">
+                      <div className="no-preview-content">
+                        <span className="preview-icon">📄</span>
+                        <h3>No Preview Yet</h3>
+                        <p>Fill in the fields and click "Generate Preview" to see your combined PDF with template and drawings</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
