@@ -15,24 +15,42 @@ A TypeScript-based PDF Generator microservice for ERPNext/Frappe integration des
 
 ## Recent Updates (October 30, 2025)
 
-### Latest Implementation ✅ (Complete Three-Tier System)
-1. **Drawing Field Mapping UI**
+### Latest Implementation ✅ (Visual Placement & Data Sync)
+1. **Visual Drawing Placement Editor** (NEW)
+   - Drag-to-position drawings directly on template preview
+   - Resize drawings via corner handles
+   - Click to select, shows properties panel
+   - Visual feedback with numbered labels and colored borders
+   - Zoom controls for precision positioning
+   - Real-time updates to combination configuration
+   - Full-width layout for better workspace visibility
+
+2. **Critical Data Synchronization Fix**
+   - Placements now properly sync with drawing mappings and data
+   - Auto-loads field mappings when new drawings added
+   - Removes stale entries when drawings deleted or changed
+   - Uses Promise.all for efficient parallel mapping fetches
+   - Preserves user input data when drawings persist
+   - Test mode shows only active drawing fields
+   - Generation receives clean payload with no stale data
+
+3. **Drawing Field Mapping UI**
    - Reused PDFMapper component for both templates and drawings
    - Added `isDrawing` prop to switch between template and drawing modes
    - Only PDF drawings can have field mappings (images embedded directly)
    - Integrated into DrawingManager with seamless navigation
    - Separate API endpoints: `/api/drawing-mappings/` vs `/api/mappings/`
 
-2. **Drawing Rename Functionality**
+4. **Drawing Rename Functionality**
    - Rename drawings while preserving file extensions
    - Automatically updates all combination references
    - Template reusability across projects
 
-3. **Combinations Management**
+5. **Combinations Management**
    - Three-tier architecture: Templates → Drawings → Combinations
    - Combinations link templates with drawing placements
    - Each placement defines: drawing name, x, y, width, height
-   - Visual drag-to-place interface for drawing positioning
+   - Edit/Test mode toggle for combination workflow
    - File-based storage in `/combinations/` directory
 
 4. **PDF Compositing Engine**
@@ -265,12 +283,17 @@ interface GenerateRequest {
 ### Tier 3: Combinations
 1. Create new combination
 2. Select base template
-3. Add drawing placements:
-   - Choose drawing from list
-   - Define position (x, y)
-   - Define size (width, height)
+3. Visual drawing placement:
+   - Template preview loads automatically
+   - Click "Add Drawing" to create placement rectangle
+   - Drag rectangle to position on template
+   - Resize using corner handle
+   - Select different drawing from dropdown
    - Repeat for multiple drawings (front view, side view, etc.)
+   - Zoom in/out for precision
 4. Save combination configuration
+5. Switch to Test mode to fill data
+6. Generate composite PDF
 
 ### Generate PDFs via API
 
@@ -338,7 +361,10 @@ POST /api/generate
 - Drawing rename with combination updates
 - Drawing field mapping UI (PDF only)
 - Combinations management system
-- Drawing placement definition in combinations
+- **Visual drag-to-place drawing placement editor**
+- **Drag and resize drawings on template preview**
+- **Automatic drawing data synchronization**
+- **Edit/Test mode toggle for combinations**
 - PDF compositing engine with field mappings
 - Multiple drawings per combination
 - Combination-based PDF generation API
