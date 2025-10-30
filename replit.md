@@ -43,7 +43,24 @@ A TypeScript-based PDF Generator microservice for ERPNext/Frappe integration des
    - Min-height: 600px from 500px = +100px
    - Much more comfortable for positioning drawings
 
-5. **Improved Overall Proportions**
+5. **Drawing Rotation Support** ✅ (NEW)
+   - Rotate drawings 0-360 degrees when placing on templates
+   - Rotation input in placement properties panel
+   - Visual preview shows rotation in real-time
+   - Backend applies center-based rotation (not corner-based)
+   - Rotation matrix compensates for pdf-lib's coordinate system
+   - Works for both PDF drawings and image drawings
+   - Generated PDFs match visual preview exactly
+
+6. **Realtime Drawing Preview** ✅ (NEW)
+   - Shows actual drawing images/PDFs during placement (not just rectangles)
+   - Loads PDFs and images asynchronously in background
+   - Displays at 70% opacity for easy positioning
+   - Preview respects rotation settings
+   - Cached for performance
+   - Labels show rotation angle: "1. HDR.pdf (90°)"
+
+7. **Improved Overall Proportions**
    - Better balance between form inputs and preview areas
    - Horizontal space properly utilized throughout
    - Reduced vertical cramming
