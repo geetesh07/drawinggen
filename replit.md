@@ -15,17 +15,27 @@ A TypeScript-based PDF Generator microservice for ERPNext/Frappe integration des
 
 ## Recent Updates (October 30, 2025)
 
-### Latest Implementation ✅ (Visual Placement & Data Sync)
-1. **Visual Drawing Placement Editor** (NEW)
+### Latest Implementation ✅ (Production-Ready Release)
+1. **Visual Drawing Placement Editor**
    - Drag-to-position drawings directly on template preview
    - Resize drawings via corner handles
    - Click to select, shows properties panel
    - Visual feedback with numbered labels and colored borders
    - Zoom controls for precision positioning
    - Real-time updates to combination configuration
-   - Full-width layout for better workspace visibility
+   - **Full viewport height** - uses `calc(100vh - 280px)` with no scrolling
+   - Centered canvas display with improved button styling
 
-2. **Critical Data Synchronization Fix**
+2. **Conditional Drawing Rendering** (NEW)
+   - Show/hide drawings based on template field values
+   - Add condition to any drawing placement:
+     - **Field Name**: Template field to check (e.g., "show_details")
+     - **Required Value**: Value that must match (e.g., "yes")
+   - Empty condition = drawing always shows
+   - Backend automatically skips drawings when condition not met
+   - Perfect for optional technical details, annotations, or variants
+
+3. **Critical Data Synchronization Fix**
    - Placements now properly sync with drawing mappings and data
    - Auto-loads field mappings when new drawings added
    - Removes stale entries when drawings deleted or changed
@@ -33,6 +43,14 @@ A TypeScript-based PDF Generator microservice for ERPNext/Frappe integration des
    - Preserves user input data when drawings persist
    - Test mode shows only active drawing fields
    - Generation receives clean payload with no stale data
+
+4. **UI/UX Polish & Production Ready**
+   - Fixed drawing mapper layout - no more distortion/shifting
+   - Consistent button styling across all views
+   - Improved zoom controls with better visibility
+   - All PDF viewers use full height with flexbox layout
+   - Canvas containers use `overflow: hidden` for crisp display
+   - Professional hover effects and transitions
 
 3. **Drawing Field Mapping UI**
    - Reused PDFMapper component for both templates and drawings
@@ -209,6 +227,8 @@ interface DrawingPlacementArea {
   y: number;
   width: number;
   height: number;
+  conditionField?: string;
+  conditionValue?: string;
 }
 ```
 

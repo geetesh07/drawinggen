@@ -202,7 +202,7 @@ function DrawingManager({ onSelectDrawing }: Props) {
           </div>
         </div>
       ) : (
-        <div className="drawing-mapper-view">
+        <>
           <div className="drawing-mapper-header">
             <button
               className="back-to-list-btn"
@@ -214,11 +214,13 @@ function DrawingManager({ onSelectDrawing }: Props) {
             </button>
             <h2>{selectedDrawing}</h2>
           </div>
-          <DrawingMapper
-            drawingName={selectedDrawing}
-            onMappingSaved={() => loadDrawings()}
-          />
-        </div>
+          <div style={{ flex: 1, overflow: 'hidden' }}>
+            <DrawingMapper
+              drawingName={selectedDrawing}
+              onMappingSaved={() => loadDrawings()}
+            />
+          </div>
+        </>
       )}
     </div>
   );

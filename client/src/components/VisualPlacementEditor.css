@@ -57,21 +57,27 @@
 }
 
 .zoom-controls button {
-  width: 32px;
-  height: 32px;
-  border-radius: 4px;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 0.75rem;
+  border-radius: 6px;
   background: #f0f0f0;
   color: #333;
   font-weight: bold;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
+  border: 1px solid #d0d0d0;
+  cursor: pointer;
 }
 
 .zoom-controls button:hover {
-  background: #e0e0e0;
+  background: #667eea;
+  color: white;
+  border-color: #667eea;
+  transform: translateY(-1px);
 }
 
 .zoom-controls span {
@@ -128,12 +134,12 @@
 .canvas-container {
   flex: 1;
   position: relative;
-  overflow: auto;
+  overflow: hidden;
   background: #2a2a2a;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 1rem;
 }
 
 .pdf-canvas {

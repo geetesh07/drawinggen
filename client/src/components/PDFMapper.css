@@ -33,16 +33,23 @@
 }
 
 .zoom-controls button {
-  padding: 0.5rem 1rem;
+  min-width: 40px;
+  height: 36px;
+  padding: 0 1rem;
   background: #667eea;
   color: white;
   border-radius: 6px;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 1.1rem;
   transition: all 0.2s;
+  cursor: pointer;
+  border: none;
 }
 
 .zoom-controls button:hover {
   background: #5568d3;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
 .zoom-controls span {
