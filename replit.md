@@ -13,6 +13,44 @@ A TypeScript-based PDF Generator microservice for ERPNext/Frappe integration des
 **Status**: Complete three-tier architecture implemented and ready for testing
 **Last Updated**: October 30, 2025 - Production-Ready Release v2
 
+## Recent Updates (October 30, 2025 - v3)
+
+### Major Layout & UX Improvements ✅
+**Problem Solved**: Combinations views were cramped with wasted horizontal space
+
+1. **Test/Preview Layout - 40% Wider Sidebar**
+   - Sidebar now uses 40% of screen width (was fixed 550px)
+   - Min-width: 550px, Max-width: 800px for flexibility
+   - Much better use of horizontal space
+   - Preview panel gets remaining 60% width
+   - No more cramped vertical scrolling!
+
+2. **Hide Sidebar Functionality** (NEW)
+   - Click "✕ Hide Sidebar" button in combinations editor
+   - Sidebar smoothly collapses to give 100% width
+   - Click "☰ Show Sidebar" to restore
+   - Works in both Edit and Test/Preview modes
+   - Provides maximum space when needed
+
+3. **Larger, More Spacious Buttons & Controls**
+   - Edit/Test mode tabs: Larger padding (0.75rem × 1.5rem), bigger font (1rem)
+   - Save/Delete buttons: Bigger (0.875rem × 2rem), bolder (font-weight: 600)
+   - Better spacing between all action buttons (gap: 1rem)
+   - More professional, easier to click
+
+4. **Visual Placement Editor - More Vertical Space**
+   - Height: calc(100vh - 200px) from 280px = +80px
+   - Min-height: 600px from 500px = +100px
+   - Much more comfortable for positioning drawings
+
+5. **Improved Overall Proportions**
+   - Better balance between form inputs and preview areas
+   - Horizontal space properly utilized throughout
+   - Reduced vertical cramming
+   - Smoother, more professional appearance
+
+---
+
 ## Recent Updates (October 30, 2025 - v2)
 
 ### Production-Ready Improvements ✅
