@@ -282,7 +282,12 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
   };
 
   const handleManualApply = () => {
-    applyFieldMapping(manualX, manualY, manualWidth, manualHeight);
+    const x = snapToGridValue(manualX);
+    const y = snapToGridValue(manualY);
+    const width = snapToGridValue(manualWidth);
+    const height = snapToGridValue(manualHeight);
+
+    applyFieldMapping(x, y, width, height);
   };
 
   const handleSaveMapping = async () => {
@@ -323,6 +328,11 @@ function PDFMapper({ templateName, onMappingSaved }: Props) {
     setFontFamily(field.fontFamily || 'Helvetica');
     setBold(field.bold || false);
     setItalic(field.italic || false);
+    
+    setManualX(field.x);
+    setManualY(field.y);
+    setManualWidth(field.maxWidth || 200);
+    setManualHeight(field.maxHeight || (field.size + 4));
   };
 
   const handleCancelEdit = () => {
