@@ -11,9 +11,10 @@ interface Props {
   selectedTemplate: string | null;
   onSelect: (name: string) => void;
   onUpload: (file: File) => void;
+  onDelete: (name: string) => void;
 }
 
-function TemplateList({ templates, selectedTemplate, onSelect, onUpload }: Props) {
+function TemplateList({ templates, selectedTemplate, onSelect, onUpload, onDelete }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -26,6 +27,11 @@ function TemplateList({ templates, selectedTemplate, onSelect, onUpload }: Props
     } else {
       alert('Please select a PDF file');
     }
+  };
+
+  const handleDelete = (e: React.MouseEvent, templateName: string) => {
+    e.stopPropagation();
+    onDelete(templateName);
   };
 
   return (
@@ -73,6 +79,13 @@ function TemplateList({ templates, selectedTemplate, onSelect, onUpload }: Props
                   )}
                 </div>
               </div>
+              <button
+                className="delete-template-btn"
+                onClick={(e) => handleDelete(e, template.name)}
+                title="Delete template"
+              >
+                🗑️
+              </button>
             </div>
           ))
         )}

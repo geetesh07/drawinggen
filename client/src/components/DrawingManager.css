@@ -1,0 +1,144 @@
+.drawing-manager {
+  padding: 2rem;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.drawing-header {
+  margin-bottom: 2rem;
+}
+
+.drawing-header h2 {
+  font-size: 1.75rem;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.drawing-subtitle {
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+.upload-drawing-btn {
+  padding: 0.75rem 1.5rem;
+  background: #667eea;
+  color: white;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.upload-drawing-btn:hover {
+  background: #5568d3;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.drawing-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.no-drawings {
+  grid-column: 1 / -1;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: #999;
+}
+
+.no-drawings .hint {
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}
+
+.drawing-card {
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.drawing-card:hover {
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+  transform: translateY(-2px);
+}
+
+.drawing-card.selected {
+  border-color: #667eea;
+  background: #e8ebfa;
+}
+
+.drawing-preview {
+  width: 80px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.drawing-icon {
+  font-size: 2.5rem;
+}
+
+.drawing-info {
+  text-align: center;
+  width: 100%;
+}
+
+.drawing-name {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 0.5rem;
+  word-break: break-word;
+  font-size: 0.9rem;
+}
+
+.drawing-type {
+  font-size: 0.75rem;
+  color: #666;
+  text-transform: uppercase;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.drawing-mapped-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  background: #d4f4dd;
+  color: #2d6a3e;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.delete-drawing-btn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.5rem;
+  background: transparent;
+  font-size: 1.2rem;
+  opacity: 0;
+  transition: all 0.2s;
+  border-radius: 4px;
+}
+
+.drawing-card:hover .delete-drawing-btn {
+  opacity: 0.6;
+}
+
+.delete-drawing-btn:hover {
+  opacity: 1 !important;
+  background: #fee;
+}

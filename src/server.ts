@@ -87,6 +87,99 @@ app.post('/api/templates/upload', upload.single('template'), async (req: Request
   }
 });
 
+app.delete('/api/templates/:name', async (req: Request, res: Response) => {
+  try {
+    const { name } = req.params;
+    await pdfService.deleteTemplate(name);
+    res.json({ message: 'Template deleted successfully' });
+  } catch (error: any) {
+    console.error('Delete template error:', error);
+    res.status(500).json({ error: error.message || 'Failed to delete template' });
+  }
+});
+
+app.get('/api/drawings', async (req: Request, res: Response) => {
+  try {
+    const drawings = await pdfService.listDrawings();
+    res.json(drawings);
+  } catch (error: any) {
+    console.error('List drawings error:', error);
+    res.status(500).json({ error: error.message || 'Failed to list drawings' });
+  }
+});
+
+app.get('/api/drawings/:name', async (req: Request, res: Response) => {
+  try {
+    const { name } = req.params;
+    const { buffer, contentType } = await pdfService.getDrawing(name);
+
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.send(buffer);
+  } catch (error: any) {
+    console.error('Get drawing error:', error);
+    res.status(404).json({ error: error.message || 'Drawing not found' });
+  }
+});
+
+app.post('/api/drawings/upload', upload.single('drawing'), async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const filename = req.file.originalname;
+    
+    await pdfService.saveDrawing(filename, req.file.buffer);
+
+    res.json({ message: 'Drawing uploaded successfully', filename });
+  } catch (error: any) {
+    console.error('Upload drawing error:', error);
+    res.status(500).json({ error: error.message || 'Failed to upload drawing' });
+  }
+});
+
+app.delete('/api/drawings/:name', async (req: Request, res: Response) => {
+  try {
+    const { name } = req.params;
+    await pdfService.deleteDrawing(name);
+    res.json({ message: 'Drawing deleted successfully' });
+  } catch (error: any) {
+    console.error('Delete drawing error:', error);
+    res.status(500).json({ error: error.message || 'Failed to delete drawing' });
+  }
+});
+
+app.get('/api/drawing-mappings/:name', async (req: Request, res: Response) => {
+  try {
+    const { name } = req.params;
+    const mapping = await pdfService.getDrawingMapping(name);
+
+    if (!mapping) {
+      return res.status(404).json({ error: 'Drawing mapping not found' });
+    }
+
+    res.json(mapping);
+  } catch (error: any) {
+    console.error('Get drawing mapping error:', error);
+    res.status(500).json({ error: error.message || 'Failed to get drawing mapping' });
+  }
+});
+
+app.post('/api/drawing-mappings/:name', async (req: Request, res: Response) => {
+  try {
+    const { name } = req.params;
+    const mapping = req.body;
+
+    await pdfService.saveDrawingMapping(name, mapping);
+
+    res.json({ message: 'Drawing mapping saved successfully' });
+  } catch (error: any) {
+    console.error('Save drawing mapping error:', error);
+    res.status(500).json({ error: error.message || 'Failed to save drawing mapping' });
+  }
+});
+
 app.get('/api/mappings/:name', async (req: Request, res: Response) => {
   try {
     const { name } = req.params;

@@ -9,10 +9,34 @@ export interface FieldMapping {
   maxHeight?: number;
   bold?: boolean;
   italic?: boolean;
+  condition?: {
+    field: string;
+    operator: 'equals' | 'not_equals' | 'contains' | 'not_contains';
+    value: string;
+  };
 }
 
 export interface TemplateMapping {
   [fieldName: string]: FieldMapping;
+}
+
+export interface DrawingPlacementArea {
+  drawingName: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface TemplateConfiguration {
+  mapping: TemplateMapping;
+  drawingPlacements?: DrawingPlacementArea[];
+}
+
+export interface DrawingInfo {
+  name: string;
+  type: 'pdf' | 'image' | 'svg';
+  hasMapping: boolean;
 }
 
 export interface DrawingInsertion {

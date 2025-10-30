@@ -288,4 +288,121 @@ export class PDFService {
     const templatePath = path.join(this.templatesDir, sanitizedName);
     await fs.writeFile(templatePath, buffer);
   }
+
+  async deleteTemplate(templateName: string): Promise<void> {
+    const sanitizedName = this.validatePDFFilename(templateName);
+    const templatePath = path.join(this.templatesDir, sanitizedName);
+    const mappingPath = path.join(
+      this.mappingsDir,
+      sanitizedName.replace('.pdf', '.json')
+    );
+
+    if (await fs.pathExists(templatePath)) {
+      await fs.remove(templatePath);
+    }
+
+    if (await fs.pathExists(mappingPath)) {
+      await fs.remove(mappingPath);
+    }
+  }
+
+  async listDrawings(): Promise<{ name: string; type: 'pdf' | 'image' | 'svg'; hasMapping: boolean }[]> {
+    const files = await fs.readdir(this.drawingsDir);
+    const drawings: { name: string; type: 'pdf' | 'image' | 'svg'; hasMapping: boolean }[] = [];
+
+    for (const file of files) {
+      const lowerFile = file.toLowerCase();
+      let type: 'pdf' | 'image' | 'svg' = 'image';
+      
+      if (lowerFile.endsWith('.pdf')) {
+        type = 'pdf';
+      } else if (lowerFile.endsWith('.svg')) {
+        type = 'svg';
+      }
+
+      const mappingPath = path.join(
+        this.drawingsMappingsDir,
+        file.replace(/\.(pdf|png|jpg|jpeg|gif|bmp|svg)$/i, '.json')
+      );
+      const hasMapping = await fs.pathExists(mappingPath);
+
+      drawings.push({ name: file, type, hasMapping });
+    }
+
+    return drawings;
+  }
+
+  async getDrawing(drawingName: string): Promise<{ buffer: Buffer; contentType: string }> {
+    const sanitizedName = this.sanitizeFilename(drawingName);
+    const drawingPath = path.join(this.drawingsDir, sanitizedName);
+
+    if (!await fs.pathExists(drawingPath)) {
+      throw new Error(`Drawing not found: ${drawingName}`);
+    }
+
+    const buffer = await fs.readFile(drawingPath);
+    const lowerName = sanitizedName.toLowerCase();
+    
+    let contentType = 'application/octet-stream';
+    if (lowerName.endsWith('.pdf')) {
+      contentType = 'application/pdf';
+    } else if (lowerName.endsWith('.svg')) {
+      contentType = 'image/svg+xml';
+    } else if (lowerName.endsWith('.png')) {
+      contentType = 'image/png';
+    } else if (lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg')) {
+      contentType = 'image/jpeg';
+    } else if (lowerName.endsWith('.gif')) {
+      contentType = 'image/gif';
+    }
+
+    return { buffer, contentType };
+  }
+
+  async saveDrawing(drawingName: string, buffer: Buffer): Promise<void> {
+    const sanitizedName = this.sanitizeFilename(drawingName);
+    const drawingPath = path.join(this.drawingsDir, sanitizedName);
+    await fs.writeFile(drawingPath, buffer);
+  }
+
+  async deleteDrawing(drawingName: string): Promise<void> {
+    const sanitizedName = this.sanitizeFilename(drawingName);
+    const drawingPath = path.join(this.drawingsDir, sanitizedName);
+    const mappingPath = path.join(
+      this.drawingsMappingsDir,
+      sanitizedName.replace(/\.(pdf|png|jpg|jpeg|gif|bmp|svg)$/i, '.json')
+    );
+
+    if (await fs.pathExists(drawingPath)) {
+      await fs.remove(drawingPath);
+    }
+
+    if (await fs.pathExists(mappingPath)) {
+      await fs.remove(mappingPath);
+    }
+  }
+
+  async getDrawingMapping(drawingName: string): Promise<TemplateMapping | null> {
+    const sanitizedName = this.sanitizeFilename(drawingName);
+    const mappingPath = path.join(
+      this.drawingsMappingsDir,
+      sanitizedName.replace(/\.(pdf|png|jpg|jpeg|gif|bmp|svg)$/i, '.json')
+    );
+
+    if (!await fs.pathExists(mappingPath)) {
+      return null;
+    }
+
+    return await fs.readJSON(mappingPath);
+  }
+
+  async saveDrawingMapping(drawingName: string, mapping: TemplateMapping): Promise<void> {
+    const sanitizedName = this.sanitizeFilename(drawingName);
+    const mappingPath = path.join(
+      this.drawingsMappingsDir,
+      sanitizedName.replace(/\.(pdf|png|jpg|jpeg|gif|bmp|svg)$/i, '.json')
+    );
+
+    await fs.writeJSON(mappingPath, mapping, { spaces: 2 });
+  }
 }

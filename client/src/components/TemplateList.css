@@ -105,3 +105,21 @@
   background: #ffe8cc;
   color: #8c5e1f;
 }
+
+.delete-template-btn {
+  padding: 0.5rem;
+  background: transparent;
+  font-size: 1.2rem;
+  opacity: 0;
+  transition: all 0.2s;
+  border-radius: 4px;
+}
+
+.template-item:hover .delete-template-btn {
+  opacity: 0.6;
+}
+
+.delete-template-btn:hover {
+  opacity: 1 !important;
+  background: #fee;
+}

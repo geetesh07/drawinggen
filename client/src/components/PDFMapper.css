@@ -1,7 +1,7 @@
 .pdf-mapper {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 150px);
+  height: 100vh;
   overflow: hidden;
 }
 
@@ -9,6 +9,7 @@
   display: flex;
   flex: 1;
   overflow: hidden;
+  position: relative;
 }
 
 .pdf-viewer {
@@ -63,7 +64,7 @@
 }
 
 .fields-panel {
-  width: 400px;
+  width: 420px;
   border-left: 1px solid #e0e0e0;
   display: flex;
   flex-direction: column;
