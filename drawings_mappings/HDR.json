@@ -1,25 +1,13 @@
 {
-  "FL": {
-    "x": 177,
-    "y": 479,
+  "Flute Length": {
+    "x": 330,
+    "y": 386,
     "size": 12,
     "align": "left",
     "color": "#000000",
     "fontFamily": "Helvetica",
-    "maxWidth": 39,
-    "maxHeight": 27,
-    "bold": false,
-    "italic": false
-  },
-  "oal": {
-    "x": 289,
-    "y": 527,
-    "size": 12,
-    "align": "left",
-    "color": "#000000",
-    "fontFamily": "Helvetica",
-    "maxWidth": 59,
-    "maxHeight": 31,
+    "maxWidth": 61,
+    "maxHeight": 22,
     "bold": false,
     "italic": false
   }
