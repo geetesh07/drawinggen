@@ -75,12 +75,27 @@ function App() {
     <div className="app">
       <header className="header">
         <div className="header-left">
-          <button
-            className="sidebar-toggle"
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          >
-            {sidebarCollapsed ? '☰ Show' : '✕ Hide'} {mainView === 'templates' ? 'Templates' : 'Sidebar'}
-          </button>
+          {mainView !== 'combinations' && (
+            <button
+              className="sidebar-toggle"
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            >
+              {sidebarCollapsed ? '☰ Show Sidebar' : '✕ Hide Sidebar'}
+            </button>
+          )}
+          {mainView === 'combinations' && (
+            <button
+              className="sidebar-toggle"
+              onClick={() => {
+                const sidebar = document.querySelector('.combinations-sidebar');
+                if (sidebar) {
+                  sidebar.classList.toggle('collapsed');
+                }
+              }}
+            >
+              {document.querySelector('.combinations-sidebar.collapsed') ? '☰ Show Sidebar' : '✕ Hide Sidebar'}
+            </button>
+          )}
           <div>
             <h1>📄 PDF Generator Admin</h1>
           </div>

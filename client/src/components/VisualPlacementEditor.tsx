@@ -10,6 +10,7 @@ interface DrawingPlacement {
   y: number;
   width: number;
   height: number;
+  rotation?: number;
   conditionField?: string;
   conditionValue?: string;
 }
@@ -29,6 +30,7 @@ function VisualPlacementEditor({ templateName, placements, onPlacementsChange, d
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState<{ x: number; y: number; scrollLeft: number; scrollTop: number } | null>(null);
+  const [drawingPreviews, setDrawingPreviews] = useState<{ [name: string]: HTMLImageElement | HTMLCanvasElement }>({});
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -40,7 +42,11 @@ function VisualPlacementEditor({ templateName, placements, onPlacementsChange, d
 
   useEffect(() => {
     drawPlacements();
-  }, [placements, zoom, selectedIndex]);
+  }, [placements, zoom, selectedIndex, drawingPreviews]);
+
+  useEffect(() => {
+    loadDrawingPreviews();
+  }, [placements]);
 
   const loadPDF = async () => {
     if (!canvasRef.current) return;
@@ -74,6 +80,47 @@ function VisualPlacementEditor({ templateName, placements, onPlacementsChange, d
     }
   };
 
+  const loadDrawingPreviews = async () => {
+    const newPreviews: { [name: string]: HTMLImageElement | HTMLCanvasElement } = { ...drawingPreviews };
+    
+    for (const placement of placements) {
+      if (!newPreviews[placement.drawingName]) {
+        try {
+          const drawingFile = drawings.find(d => d === placement.drawingName);
+          if (!drawingFile) continue;
+
+          if (drawingFile.toLowerCase().endsWith('.pdf')) {
+            const pdf = await pdfjsLib.getDocument(`/api/drawings/${drawingFile}`).promise;
+            const page = await pdf.getPage(1);
+            const viewport = page.getViewport({ scale: 0.5 });
+            
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = viewport.width;
+            tempCanvas.height = viewport.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            if (tempCtx) {
+              await page.render({ canvasContext: tempCtx, viewport }).promise;
+              newPreviews[placement.drawingName] = tempCanvas;
+            }
+          } else {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            await new Promise((resolve, reject) => {
+              img.onload = resolve;
+              img.onerror = reject;
+              img.src = `/api/drawings/${drawingFile}`;
+            });
+            newPreviews[placement.drawingName] = img;
+          }
+        } catch (error) {
+          console.error(`Failed to load preview for ${placement.drawingName}:`, error);
+        }
+      }
+    }
+    
+    setDrawingPreviews(newPreviews);
+  };
+
   const drawPlacements = () => {
     const canvas = overlayCanvasRef.current;
     if (!canvas) return;
@@ -88,20 +135,39 @@ function VisualPlacementEditor({ templateName, placements, onPlacementsChange, d
       const y = placement.y * zoom;
       const width = placement.width * zoom;
       const height = placement.height * zoom;
+      const rotation = placement.rotation || 0;
 
       const isSelected = index === selectedIndex;
 
-      ctx.fillStyle = isSelected ? 'rgba(102, 126, 234, 0.2)' : 'rgba(40, 167, 69, 0.15)';
-      ctx.fillRect(x, y, width, height);
+      ctx.save();
+      
+      const centerX = x + width / 2;
+      const centerY = y + height / 2;
+      ctx.translate(centerX, centerY);
+      ctx.rotate((rotation * Math.PI) / 180);
+      ctx.translate(-centerX, -centerY);
+
+      const preview = drawingPreviews[placement.drawingName];
+      if (preview) {
+        ctx.globalAlpha = 0.7;
+        ctx.drawImage(preview, x, y, width, height);
+        ctx.globalAlpha = 1.0;
+      } else {
+        ctx.fillStyle = isSelected ? 'rgba(102, 126, 234, 0.2)' : 'rgba(40, 167, 69, 0.15)';
+        ctx.fillRect(x, y, width, height);
+      }
 
       ctx.strokeStyle = isSelected ? '#667eea' : '#28a745';
       ctx.lineWidth = isSelected ? 3 : 2;
       ctx.setLineDash(isSelected ? [] : [5, 5]);
       ctx.strokeRect(x, y, width, height);
+      ctx.setLineDash([]);
+
+      ctx.restore();
 
       ctx.fillStyle = isSelected ? '#667eea' : '#28a745';
       ctx.font = `bold ${14}px Arial`;
-      const label = `${index + 1}. ${placement.drawingName}`;
+      const label = `${index + 1}. ${placement.drawingName}${rotation ? ` (${rotation}°)` : ''}`;
       const textMetrics = ctx.measureText(label);
       
       ctx.fillRect(x, y - 25, textMetrics.width + 16, 25);
@@ -332,6 +398,19 @@ function VisualPlacementEditor({ templateName, placements, onPlacementsChange, d
                 onChange={(e) => handleUpdateSelectedPlacement('height', parseFloat(e.target.value))}
               />
             </div>
+            <div className="prop-field">
+              <label>Rotation:</label>
+              <input
+                type="number"
+                min="0"
+                max="360"
+                step="1"
+                placeholder="0°"
+                value={placements[selectedIndex].rotation || 0}
+                onChange={(e) => handleUpdateSelectedPlacement('rotation', parseFloat(e.target.value) || 0)}
+              />
+              <span style={{ fontSize: '0.85rem', color: '#888' }}>degrees</span>
+            </div>
           </div>
           <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e0e0e0' }}>
             <h4 style={{ fontSize: '0.95rem', marginBottom: '0.75rem', color: '#666' }}>Conditional Rendering (Optional)</h4>
@@ -384,7 +463,7 @@ function VisualPlacementEditor({ templateName, placements, onPlacementsChange, d
       </div>
 
       <div className="placement-help">
-        <p>💡 <strong>Tip:</strong> Click and drag to position drawings. Middle-click and drag (or scroll wheel click) to pan. Use corner handle to resize.</p>
+        <p>💡 <strong>Tip:</strong> Click and drag to position drawings. Middle-click to pan. Use corner handle to resize. Set rotation angle in properties panel.</p>
       </div>
     </div>
   );

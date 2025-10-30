@@ -1,4 +1,4 @@
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
 import { TemplateMapping, FieldMapping, DrawingInsertion, Combination, CombinationInfo } from './types';
 import fs from 'fs-extra';
 import path from 'path';
@@ -702,11 +702,13 @@ export class PDFService {
           offsetX = (placement.width - finalWidth) / 2;
         }
         
+        const rotation = placement.rotation || 0;
         firstPage.drawPage(embeddedPage, {
           x: placement.x + offsetX,
           y: height - placement.y - placement.height + offsetY,
           width: finalWidth,
           height: finalHeight,
+          rotate: degrees(rotation),
         });
       } else if (['.png', '.jpg', '.jpeg'].includes(drawingExt)) {
         let image;
@@ -734,11 +736,13 @@ export class PDFService {
           offsetX = (placement.width - finalWidth) / 2;
         }
 
+        const rotation = placement.rotation || 0;
         firstPage.drawImage(image, {
           x: placement.x + offsetX,
           y: height - placement.y - placement.height + offsetY,
           width: finalWidth,
           height: finalHeight,
+          rotate: degrees(rotation),
         });
       }
     }

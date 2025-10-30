@@ -26,6 +26,7 @@ export interface DrawingPlacementArea {
   y: number;
   width: number;
   height: number;
+  rotation?: number;
   conditionField?: string;
   conditionValue?: string;
 }
@@ -47,6 +48,7 @@ export interface DrawingInsertion {
   y: number;
   width: number;
   height: number;
+  rotation?: number;
   data: {
     [key: string]: string;
   };
