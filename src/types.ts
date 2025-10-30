@@ -26,6 +26,8 @@ export interface DrawingPlacementArea {
   y: number;
   width: number;
   height: number;
+  conditionField?: string;
+  conditionValue?: string;
 }
 
 export interface TemplateConfiguration {

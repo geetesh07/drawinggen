@@ -558,6 +558,7 @@
 }
 
 .visual-placement-container .visual-placement-editor {
-  height: 600px;
+  height: calc(100vh - 280px);
+  min-height: 500px;
   border: 2px solid #e0e0e0;
 }

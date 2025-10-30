@@ -579,6 +579,13 @@ export class PDFService {
     }
 
     for (const placement of combination.drawingPlacements) {
+      if (placement.conditionField && placement.conditionValue) {
+        const conditionFieldValue = templateData[placement.conditionField];
+        if (conditionFieldValue !== placement.conditionValue) {
+          continue;
+        }
+      }
+
       const drawingName = placement.drawingName;
       const drawingBuffer = await this.getDrawing(drawingName);
       const drawingMapping = await this.getDrawingMapping(drawingName);

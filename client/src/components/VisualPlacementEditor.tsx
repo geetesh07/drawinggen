@@ -10,6 +10,8 @@ interface DrawingPlacement {
   y: number;
   width: number;
   height: number;
+  conditionField?: string;
+  conditionValue?: string;
 }
 
 interface Props {
@@ -291,6 +293,32 @@ function VisualPlacementEditor({ templateName, placements, onPlacementsChange, d
                 value={Math.round(placements[selectedIndex].height)}
                 onChange={(e) => handleUpdateSelectedPlacement('height', parseFloat(e.target.value))}
               />
+            </div>
+          </div>
+          <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e0e0e0' }}>
+            <h4 style={{ fontSize: '0.95rem', marginBottom: '0.75rem', color: '#666' }}>Conditional Rendering (Optional)</h4>
+            <p style={{ fontSize: '0.85rem', color: '#888', marginBottom: '0.75rem' }}>
+              Show this drawing only when a specific field has a value. Leave empty to always show.
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+              <div className="prop-field">
+                <label>Field Name:</label>
+                <input
+                  type="text"
+                  placeholder="e.g., show_detail"
+                  value={placements[selectedIndex].conditionField || ''}
+                  onChange={(e) => handleUpdateSelectedPlacement('conditionField', e.target.value)}
+                />
+              </div>
+              <div className="prop-field">
+                <label>Required Value:</label>
+                <input
+                  type="text"
+                  placeholder="e.g., yes"
+                  value={placements[selectedIndex].conditionValue || ''}
+                  onChange={(e) => handleUpdateSelectedPlacement('conditionValue', e.target.value)}
+                />
+              </div>
             </div>
           </div>
         </div>
