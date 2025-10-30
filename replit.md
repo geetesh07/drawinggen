@@ -10,10 +10,48 @@ A TypeScript-based PDF Generator microservice for ERPNext/Frappe integration des
 - Full-screen visual editor with drag-to-define field areas
 - No database required - everything is file-based
 
-**Status**: Core features complete, drawing compositing in progress
+**Status**: Complete three-tier architecture implemented and ready for testing
 **Last Updated**: October 30, 2025
 
 ## Recent Updates (October 30, 2025)
+
+### Latest Implementation ✅ (Complete Three-Tier System)
+1. **Drawing Field Mapping UI**
+   - Reused PDFMapper component for both templates and drawings
+   - Added `isDrawing` prop to switch between template and drawing modes
+   - Only PDF drawings can have field mappings (images embedded directly)
+   - Integrated into DrawingManager with seamless navigation
+   - Separate API endpoints: `/api/drawing-mappings/` vs `/api/mappings/`
+
+2. **Drawing Rename Functionality**
+   - Rename drawings while preserving file extensions
+   - Automatically updates all combination references
+   - Template reusability across projects
+
+3. **Combinations Management**
+   - Three-tier architecture: Templates → Drawings → Combinations
+   - Combinations link templates with drawing placements
+   - Each placement defines: drawing name, x, y, width, height
+   - Visual drag-to-place interface for drawing positioning
+   - File-based storage in `/combinations/` directory
+
+4. **PDF Compositing Engine**
+   - `generateWithCombination()` method in PDFService
+   - Loads combination configuration from file
+   - Applies template field mappings first
+   - For each drawing placement:
+     - Loads drawing file (PDF or image)
+     - Applies drawing field mappings (PDF only)
+     - Embeds filled drawing into template at specified position
+   - Supports PDF, PNG, JPG formats
+   - Proper coordinate conversion and scaling
+   - All font variants (bold, italic) working for both template and drawing fields
+
+5. **Combination-Based Generation API**
+   - POST `/api/generate-combination` endpoint
+   - Accepts: combination name, template data, drawings data
+   - Returns: Composite PDF with all fields filled and drawings placed
+   - Cache-control headers for fresh downloads
 
 ### Completed Features ✅
 1. **Full-Screen UI Redesign**
@@ -56,24 +94,6 @@ A TypeScript-based PDF Generator microservice for ERPNext/Frappe integration des
    - Type definitions for conditional rendering
    - Operators: equals, not_equals, contains, not_contains
    - Backend ready, UI implementation pending
-
-### In Progress 🚧
-1. **Drawing Field Mapping**
-   - Reuse PDFMapper component for drawings
-   - Store field mappings per drawing in `/drawings_mappings/`
-   - API endpoints ready, UI integration needed
-
-2. **Drawing Placement Areas in Templates**
-   - Define rectangular areas where drawings will be placed
-   - Support multiple drawings per template
-   - Drag-to-define placement zones in templates
-   - Store configuration in template mapping
-
-3. **PDF Compositing Engine**
-   - Load drawing files (PDF, images)
-   - Apply field mappings to drawings
-   - Composite drawings into template at defined positions
-   - Support multiple drawings with proper layering
 
 ### Pending Features 📋
 1. **Conditional Field UI**
@@ -121,16 +141,24 @@ A TypeScript-based PDF Generator microservice for ERPNext/Frappe integration des
 - `GET /api/mappings/:name` - Get field mapping for template
 - `POST /api/mappings/:name` - Save field mapping for template
 
-### Drawing Management (NEW)
+### Drawing Management
 - `GET /api/drawings` - List all drawings with type info
 - `GET /api/drawings/:name` - Download specific drawing
 - `POST /api/drawings/upload` - Upload new drawing (multipart/form-data)
+- `POST /api/drawings/:oldName/rename` - Rename drawing (updates all combinations)
 - `DELETE /api/drawings/:name` - Delete drawing and its mapping
 - `GET /api/drawing-mappings/:name` - Get field mapping for drawing
 - `POST /api/drawing-mappings/:name` - Save field mapping for drawing
 
+### Combinations Management
+- `GET /api/combinations` - List all combinations
+- `GET /api/combinations/:name` - Get specific combination configuration
+- `POST /api/combinations/:name` - Save combination (template + drawing placements)
+- `DELETE /api/combinations/:name` - Delete combination
+
 ### PDF Generation
-- `POST /api/generate` - Generate filled PDF from template + data + drawings
+- `POST /api/generate` - Generate filled PDF from template + data (legacy)
+- `POST /api/generate-combination` - Generate PDF using combination configuration
 
 ## Type Definitions
 
@@ -219,34 +247,63 @@ interface GenerateRequest {
 }
 ```
 
-## Technical Drawing Workflow
+## Three-Tier Technical Drawing Workflow
 
-### 1. Setup Template
+### Tier 1: Templates
 1. Upload main template PDF (title block, borders, approval fields)
-2. Map template fields: date, author, customer, description, etc.
-3. Save template mapping
+2. Map template fields using visual drag-to-define interface
+3. Configure field styling: font, size, color, alignment, bold, italic
+4. Save template mapping
 
-### 2. Setup Drawings
-1. Upload technical drawings (PDF/images)
-2. Map drawing-specific fields (dimensions, part numbers, notes)
-3. Save drawing mappings
+### Tier 2: Drawings
+1. Upload technical drawings (PDF, PNG, JPG, SVG)
+2. For PDF drawings: Map fields (dimensions, part numbers, notes)
+3. For image drawings: No mapping needed (embedded directly)
+4. Save drawing mappings
+5. Optional: Rename drawings for template reusability
 
-### 3. Define Drawing Placements (In Progress)
-1. Select template
-2. Define rectangular areas for drawings
-3. Assign drawing names to each area
-4. Support multiple drawings (front view, side view, etc.)
+### Tier 3: Combinations
+1. Create new combination
+2. Select base template
+3. Add drawing placements:
+   - Choose drawing from list
+   - Define position (x, y)
+   - Define size (width, height)
+   - Repeat for multiple drawings (front view, side view, etc.)
+4. Save combination configuration
 
-### 4. Generate PDFs
+### Generate PDFs via API
+
+**Using Combinations (Recommended):**
+```javascript
+POST /api/generate-combination
+{
+  "combination": "my_combination",
+  "templateData": {
+    "date": "2025-10-30",
+    "author": "John Doe",
+    "customer": "Acme Corp",
+    "description": "Widget Assembly"
+  },
+  "drawingsData": {
+    "front_view.pdf": {
+      "dimension_a": "100mm",
+      "dimension_b": "50mm",
+      "part_number": "WID-001"
+    },
+    "side_view.png": {}
+  }
+}
+```
+
+**Legacy Direct Generation:**
 ```javascript
 POST /api/generate
 {
   "template": "Customer_Drawing_Template.pdf",
   "data": {
     "date": "2025-10-30",
-    "author": "John Doe",
-    "customer": "Acme Corp",
-    "description": "Widget Assembly"
+    "author": "John Doe"
   },
   "drawings": [
     {
@@ -256,8 +313,7 @@ POST /api/generate
       "width": 400,
       "height": 300,
       "data": {
-        "dimension_a": "100mm",
-        "dimension_b": "50mm"
+        "dimension_a": "100mm"
       }
     }
   ]
@@ -279,16 +335,18 @@ POST /api/generate
 - PDF preview in browser
 - Drawing upload and management
 - Drawing deletion
+- Drawing rename with combination updates
+- Drawing field mapping UI (PDF only)
+- Combinations management system
+- Drawing placement definition in combinations
+- PDF compositing engine with field mappings
+- Multiple drawings per combination
+- Combination-based PDF generation API
 - File-based storage (no database)
 - CORS enabled API
 - Type-safe TypeScript implementation
 - Collapsible sidebar for maximum workspace
-
-### 🚧 In Progress
-- Drawing field mapping UI
-- Drawing placement area definition in templates
-- PDF compositing with drawings
-- Multiple drawings per template
+- Complete three-tier architecture (Templates → Drawings → Combinations)
 
 ### 📋 Planned
 - Conditional field rendering UI
