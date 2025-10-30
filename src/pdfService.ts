@@ -703,9 +703,27 @@ export class PDFService {
         }
         
         const rotation = placement.rotation || 0;
+        let drawX = placement.x + offsetX;
+        let drawY = height - placement.y - placement.height + offsetY;
+        
+        if (rotation !== 0) {
+          const rad = (rotation * Math.PI) / 180;
+          const cos = Math.cos(rad);
+          const sin = Math.sin(rad);
+          
+          const centerX = drawX + finalWidth / 2;
+          const centerY = drawY + finalHeight / 2;
+          
+          const dx = drawX - centerX;
+          const dy = drawY - centerY;
+          
+          drawX = centerX + dx * cos - dy * sin;
+          drawY = centerY + dx * sin + dy * cos;
+        }
+        
         firstPage.drawPage(embeddedPage, {
-          x: placement.x + offsetX,
-          y: height - placement.y - placement.height + offsetY,
+          x: drawX,
+          y: drawY,
           width: finalWidth,
           height: finalHeight,
           rotate: degrees(rotation),
@@ -737,9 +755,27 @@ export class PDFService {
         }
 
         const rotation = placement.rotation || 0;
+        let drawX = placement.x + offsetX;
+        let drawY = height - placement.y - placement.height + offsetY;
+        
+        if (rotation !== 0) {
+          const rad = (rotation * Math.PI) / 180;
+          const cos = Math.cos(rad);
+          const sin = Math.sin(rad);
+          
+          const centerX = drawX + finalWidth / 2;
+          const centerY = drawY + finalHeight / 2;
+          
+          const dx = drawX - centerX;
+          const dy = drawY - centerY;
+          
+          drawX = centerX + dx * cos - dy * sin;
+          drawY = centerY + dx * sin + dy * cos;
+        }
+        
         firstPage.drawImage(image, {
-          x: placement.x + offsetX,
-          y: height - placement.y - placement.height + offsetY,
+          x: drawX,
+          y: drawY,
           width: finalWidth,
           height: finalHeight,
           rotate: degrees(rotation),
