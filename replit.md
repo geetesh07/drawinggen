@@ -11,9 +11,43 @@ A TypeScript-based PDF Generator microservice for ERPNext/Frappe integration des
 - No database required - everything is file-based
 
 **Status**: Complete three-tier architecture implemented and ready for testing
-**Last Updated**: October 30, 2025
+**Last Updated**: October 30, 2025 - Production-Ready Release v2
 
-## Recent Updates (October 30, 2025)
+## Recent Updates (October 30, 2025 - v2)
+
+### Production-Ready Improvements ✅
+1. **Combination Editor - Maximum Screen Space**
+   - Increased height to `calc(100vh - 200px)` (previously 280px offset)
+   - Increased min-height to 600px (previously 500px)
+   - Result: 80px more vertical space + much larger minimum height
+   - Editor now dominates the screen for comfortable positioning
+
+2. **Pan/Navigate Functionality - All PDF Viewers** (NEW)
+   - Middle-click (scroll wheel button) and drag to pan when zoomed
+   - Works in Templates, Drawings, and Combinations editors
+   - Smooth cursor changes: grab → grabbing
+   - Pointer events disabled on overlay during pan for smooth scrolling
+   - Left-click reserved for drawing/selection (no conflicts)
+   - Perfect for navigating large PDFs at high zoom levels
+
+3. **Aspect Ratio Preservation - Backend** (FIXED)
+   - Drawings no longer get stretched or squished
+   - Backend calculates drawing vs placement aspect ratios
+   - Letterbox (horizontal bars) or pillarbox (vertical bars) as needed
+   - Drawings centered within placement areas
+   - Works for both PDF drawings and PNG/JPG images
+   - Professional, distortion-free output
+
+4. **Consistency Across All Viewers**
+   - Templates, Drawings, and Combinations all work identically
+   - Same zoom controls everywhere
+   - Same pan behavior everywhere
+   - Same scroll functionality everywhere
+   - Users learn once, use everywhere
+
+---
+
+## Recent Updates (October 30, 2025 - v1)
 
 ### Latest Implementation ✅ (Production-Ready Release)
 1. **Visual Drawing Placement Editor**
