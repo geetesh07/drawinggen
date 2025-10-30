@@ -384,11 +384,45 @@ function CombinationsManager() {
                 <VisualPlacementEditor
                   templateName={currentCombination.templateName}
                   placements={currentCombination.drawingPlacements}
-                  onPlacementsChange={(newPlacements) => {
+                  onPlacementsChange={async (newPlacements) => {
                     setCurrentCombination({
                       ...currentCombination,
                       drawingPlacements: newPlacements
                     });
+
+                    const newDrawingsMappings: { [drawingName: string]: TemplateMapping } = {};
+                    const newDrawingsData: { [drawingName: string]: { [key: string]: string } } = {};
+
+                    const mappingFetches = newPlacements.map(async (placement) => {
+                      if (drawingsMappings[placement.drawingName]) {
+                        newDrawingsMappings[placement.drawingName] = drawingsMappings[placement.drawingName];
+                        newDrawingsData[placement.drawingName] = drawingsData[placement.drawingName] || {};
+                      } else {
+                        try {
+                          const resp = await fetch(`/api/drawing-mappings/${placement.drawingName}`);
+                          if (resp.ok) {
+                            const mapping = await resp.json();
+                            newDrawingsMappings[placement.drawingName] = mapping;
+                            
+                            const initialData: { [key: string]: string } = {};
+                            Object.keys(mapping).forEach((field) => {
+                              initialData[field] = drawingsData[placement.drawingName]?.[field] || '';
+                            });
+                            newDrawingsData[placement.drawingName] = initialData;
+                          } else {
+                            newDrawingsData[placement.drawingName] = {};
+                          }
+                        } catch (error) {
+                          console.error(`Failed to load mapping for ${placement.drawingName}:`, error);
+                          newDrawingsData[placement.drawingName] = {};
+                        }
+                      }
+                    });
+
+                    await Promise.all(mappingFetches);
+
+                    setDrawingsMappings(newDrawingsMappings);
+                    setDrawingsData(newDrawingsData);
                   }}
                   drawings={drawings.map(d => d.name)}
                 />

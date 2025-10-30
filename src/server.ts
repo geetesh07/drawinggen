@@ -282,6 +282,12 @@ app.post('/api/generate-combination', async (req: Request, res: Response) => {
   try {
     const { combination, templateData, drawingsData } = req.body;
 
+    console.log('=== Generate Combination Request ===');
+    console.log('Combination:', combination);
+    console.log('Template Data:', JSON.stringify(templateData, null, 2));
+    console.log('Drawings Data:', JSON.stringify(drawingsData, null, 2));
+    console.log('===================================');
+
     if (!combination) {
       return res.status(400).json({ error: 'Combination name is required' });
     }
