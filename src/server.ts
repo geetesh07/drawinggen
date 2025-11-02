@@ -103,8 +103,8 @@ app.post('/api/templates/:name/rotate', async (req: Request, res: Response) => {
     const { name } = req.params;
     const { rotation } = req.body;
 
-    if (typeof rotation !== 'number' || rotation < 0 || rotation >= 360) {
-      return res.status(400).json({ error: 'Rotation must be between 0 and 359 degrees' });
+    if (![90, 180, 270].includes(rotation)) {
+      return res.status(400).json({ error: 'Rotation must be 90, 180, or 270 degrees (PDF spec limitation)' });
     }
 
     await pdfService.rotatePDF(name, rotation, 'template');
@@ -189,8 +189,8 @@ app.post('/api/drawings/:name/rotate', async (req: Request, res: Response) => {
     const { name } = req.params;
     const { rotation } = req.body;
 
-    if (typeof rotation !== 'number' || rotation < 0 || rotation >= 360) {
-      return res.status(400).json({ error: 'Rotation must be between 0 and 359 degrees' });
+    if (![90, 180, 270].includes(rotation)) {
+      return res.status(400).json({ error: 'Rotation must be 90, 180, or 270 degrees (PDF spec limitation)' });
     }
 
     await pdfService.rotatePDF(name, rotation, 'drawing');

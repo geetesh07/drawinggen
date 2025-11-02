@@ -13,7 +13,6 @@ interface Props {
 
 function PDFRotator({ pdfName, pdfType, onRotate, onClose }: Props) {
   const [rotation, setRotation] = useState(0);
-  const [customAngle, setCustomAngle] = useState('0');
   const [isRotating, setIsRotating] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -91,62 +90,37 @@ function PDFRotator({ pdfName, pdfType, onRotate, onClose }: Props) {
           </div>
 
           <div className="rotation-controls">
-            <h4>Rotation: {rotation}°</h4>
+            <h4>Current Rotation: {rotation}°</h4>
             
-            <div className="quick-rotation">
-              <p>Quick Rotations:</p>
+            <div className="rotation-info">
+              <p>Select rotation angle for vertical/horizontal adjustment:</p>
+            </div>
+            
+            <div className="rotation-options">
               <div className="rotation-buttons">
                 <button
                   onClick={() => setRotation(90)}
-                  className="rotate-btn"
+                  className={`rotate-btn ${rotation === 90 ? 'active' : ''}`}
                 >
-                  ↶ 90°
+                  ↶ 90°<br/><small>Left</small>
                 </button>
                 <button
                   onClick={() => setRotation(180)}
-                  className="rotate-btn"
+                  className={`rotate-btn ${rotation === 180 ? 'active' : ''}`}
                 >
-                  ↕ 180°
+                  ↕ 180°<br/><small>Flip</small>
                 </button>
                 <button
                   onClick={() => setRotation(270)}
-                  className="rotate-btn"
+                  className={`rotate-btn ${rotation === 270 ? 'active' : ''}`}
                 >
-                  ↷ 270°
-                </button>
-              </div>
-            </div>
-
-            <div className="custom-rotation">
-              <p>Custom Angle:</p>
-              <div className="custom-input-group">
-                <input
-                  type="number"
-                  value={customAngle}
-                  onChange={(e) => setCustomAngle(e.target.value)}
-                  min="0"
-                  max="360"
-                  step="1"
-                  placeholder="Enter angle"
-                  className="angle-input"
-                />
-                <button
-                  onClick={() => {
-                    const angle = parseInt(customAngle) || 0;
-                    setRotation(angle % 360);
-                  }}
-                  className="apply-angle-btn"
-                >
-                  Set Angle
+                  ↷ 270°<br/><small>Right</small>
                 </button>
               </div>
             </div>
 
             <button
-              onClick={() => {
-                setRotation(0);
-                setCustomAngle('0');
-              }}
+              onClick={() => setRotation(0)}
               className="reset-btn"
               disabled={rotation === 0}
             >
@@ -154,7 +128,7 @@ function PDFRotator({ pdfName, pdfType, onRotate, onClose }: Props) {
             </button>
 
             <div className="rotation-note">
-              <p><strong>Note:</strong> This will permanently rotate the PDF file.</p>
+              <p><strong>Note:</strong> This will permanently rotate the PDF file. PDFs only support 90° increments.</p>
             </div>
           </div>
         </div>

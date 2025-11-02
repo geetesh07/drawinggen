@@ -98,70 +98,54 @@
   border-radius: 8px;
 }
 
-.quick-rotation,
-.custom-rotation {
+.rotation-info {
+  background: #f0f7ff;
+  padding: 0.75rem;
+  border-radius: 6px;
+  border-left: 4px solid #667eea;
+}
+
+.rotation-info p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.rotation-options {
   background: #f8f9fa;
   padding: 1rem;
   border-radius: 8px;
 }
 
-.quick-rotation p,
-.custom-rotation p {
-  margin: 0 0 0.75rem 0;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #555;
-}
-
 .rotation-buttons {
   display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: space-between;
 }
 
 .rotation-buttons .rotate-btn {
   flex: 1;
-  min-width: 80px;
-  padding: 0.75rem 1rem;
-}
-
-.custom-input-group {
-  display: flex;
-  gap: 0.5rem;
-  align-items: stretch;
-}
-
-.angle-input {
-  flex: 1;
-  padding: 0.75rem;
-  border: 2px solid #ddd;
-  border-radius: 6px;
-  font-size: 1rem;
+  min-width: 90px;
+  padding: 1rem 0.75rem;
   text-align: center;
-  transition: border-color 0.2s;
+  line-height: 1.4;
 }
 
-.angle-input:focus {
-  outline: none;
-  border-color: #667eea;
+.rotation-buttons .rotate-btn small {
+  display: block;
+  font-size: 0.75rem;
+  opacity: 0.8;
+  margin-top: 0.25rem;
 }
 
-.apply-angle-btn {
-  padding: 0.75rem 1rem;
-  background: #667eea;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
+.rotation-buttons .rotate-btn.active {
+  background: #4CAF50;
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2);
+  transform: scale(1.05);
 }
 
-.apply-angle-btn:hover {
-  background: #5568d3;
-  transform: translateY(-1px);
+.rotation-buttons .rotate-btn.active:hover {
+  background: #45a049;
 }
 
 .rotation-note {
