@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import VisualPlacementEditor from './VisualPlacementEditor';
+import BulkCombinationCreator from './BulkCombinationCreator';
 import './CombinationsManager.css';
 
 interface Combination {
@@ -57,6 +58,7 @@ function CombinationsManager() {
   const [drawingsMappings, setDrawingsMappings] = useState<{ [drawingName: string]: TemplateMapping }>({});
   const [isGenerating, setIsGenerating] = useState(false);
   const [pdfPreviewUrl, setPdfPreviewUrl] = useState<string | null>(null);
+  const [showBulkCreator, setShowBulkCreator] = useState(false);
 
   const loadCombinations = async () => {
     try {
@@ -271,6 +273,16 @@ function CombinationsManager() {
 
   return (
     <div className="combinations-manager">
+      {showBulkCreator && (
+        <BulkCombinationCreator
+          onComplete={() => {
+            setShowBulkCreator(false);
+            loadCombinations();
+          }}
+          onCancel={() => setShowBulkCreator(false)}
+        />
+      )}
+      
       <div className="combinations-sidebar">
         <h2>Combinations</h2>
         <p className="combinations-subtitle">Connect templates with drawings</p>
@@ -280,6 +292,13 @@ function CombinationsManager() {
           onClick={handleCreateNew}
         >
           + New Combination
+        </button>
+        
+        <button
+          className="bulk-create-btn"
+          onClick={() => setShowBulkCreator(true)}
+        >
+          ⚡ Bulk Create
         </button>
 
         <div className="combinations-list">
