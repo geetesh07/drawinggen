@@ -6,7 +6,7 @@ import { PDFService } from './pdfService';
 import { GenerateRequest, TemplateMapping } from './types';
 
 const app = express();
-const port = 5000;
+const port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 const pdfService = new PDFService();
 
 const storage = multer.memoryStorage();

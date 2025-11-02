@@ -15,27 +15,43 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Server"
+args = "API Server"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Client"
 
 [[workflows.workflow]]
-name = "Server"
+name = "API Server"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run dev"
+waitForPort = 3000
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow]]
+name = "Client"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd client && npm run dev"
 waitForPort = 5000
 
 [workflows.workflow.metadata]
 outputType = "webview"
 
 [[ports]]
-localPort = 5000
-externalPort = 80
+localPort = 3000
+externalPort = 3000
 
 [[ports]]
-localPort = 34965
-externalPort = 3002
+localPort = 5000
+externalPort = 80
 
 [[ports]]
 localPort = 39843
@@ -44,6 +60,10 @@ externalPort = 3000
 [[ports]]
 localPort = 40555
 externalPort = 3001
+
+[[ports]]
+localPort = 41755
+externalPort = 3002
 
 [[ports]]
 localPort = 42603
