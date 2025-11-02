@@ -1,7 +1,7 @@
 .pdf-mapper {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
   overflow: hidden;
 }
 
@@ -10,6 +10,7 @@
   flex: 1;
   overflow: hidden;
   position: relative;
+  min-height: 0;
 }
 
 .pdf-viewer {
@@ -87,12 +88,15 @@
 }
 
 .fields-panel {
-  width: 420px;
+  width: 450px;
+  min-width: 450px;
+  max-width: 500px;
   border-left: 1px solid #e0e0e0;
   display: flex;
   flex-direction: column;
   background: white;
   overflow-y: auto;
+  height: 100%;
 }
 
 .panel-section {

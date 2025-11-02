@@ -1,0 +1,28 @@
+{
+  "combinations": [
+    {
+      "name": "HDR",
+      "templateName": "Customer Drawing Template_filled.pdf",
+      "drawing": "HDR.pdf",
+      "placement": {
+        "x": 708.5,
+        "y": 90.5,
+        "width": 200,
+        "height": 200,
+        "rotation": 0
+      }
+    },
+    {
+      "name": "Screenshot 2025-11-02 181356",
+      "templateName": "Customer Drawing Template_filled.pdf",
+      "drawing": "Screenshot 2025-11-02 181356.pdf",
+      "placement": {
+        "x": 708.5,
+        "y": 90.5,
+        "width": 200,
+        "height": 200,
+        "rotation": 0
+      }
+    }
+  ]
+}

@@ -384,6 +384,31 @@ export class PDFService {
     }
   }
 
+  async rotatePDF(name: string, rotation: number, type: 'template' | 'drawing'): Promise<void> {
+    const sanitizedName = type === 'template' ? this.validatePDFFilename(name) : this.sanitizeFilename(name);
+    const dir = type === 'template' ? this.templatesDir : this.drawingsDir;
+    const filePath = path.join(dir, sanitizedName);
+
+    if (!await fs.pathExists(filePath)) {
+      throw new Error(`PDF not found: ${name}`);
+    }
+
+    if (!sanitizedName.toLowerCase().endsWith('.pdf')) {
+      throw new Error('Only PDF files can be rotated');
+    }
+
+    const pdfBytes = await fs.readFile(filePath);
+    const pdfDoc = await PDFDocument.load(pdfBytes);
+    const pages = pdfDoc.getPages();
+
+    for (const page of pages) {
+      page.setRotation(degrees(rotation + page.getRotation().angle));
+    }
+
+    const rotatedPdfBytes = await pdfDoc.save();
+    await fs.writeFile(filePath, rotatedPdfBytes);
+  }
+
   async getDrawingMapping(drawingName: string): Promise<TemplateMapping | null> {
     const sanitizedName = this.sanitizeFilename(drawingName);
     const mappingPath = path.join(

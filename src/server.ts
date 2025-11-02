@@ -98,6 +98,23 @@ app.delete('/api/templates/:name', async (req: Request, res: Response) => {
   }
 });
 
+app.post('/api/templates/:name/rotate', async (req: Request, res: Response) => {
+  try {
+    const { name } = req.params;
+    const { rotation } = req.body;
+
+    if (![90, 180, 270].includes(rotation)) {
+      return res.status(400).json({ error: 'Rotation must be 90, 180, or 270 degrees' });
+    }
+
+    await pdfService.rotatePDF(name, rotation, 'template');
+    res.json({ message: 'Template rotated successfully' });
+  } catch (error: any) {
+    console.error('Rotate template error:', error);
+    res.status(500).json({ error: error.message || 'Failed to rotate template' });
+  }
+});
+
 app.get('/api/drawings', async (req: Request, res: Response) => {
   try {
     const drawings = await pdfService.listDrawings();
@@ -164,6 +181,23 @@ app.put('/api/drawings/:name/rename', async (req: Request, res: Response) => {
   } catch (error: any) {
     console.error('Rename drawing error:', error);
     res.status(500).json({ error: error.message || 'Failed to rename drawing' });
+  }
+});
+
+app.post('/api/drawings/:name/rotate', async (req: Request, res: Response) => {
+  try {
+    const { name } = req.params;
+    const { rotation } = req.body;
+
+    if (![90, 180, 270].includes(rotation)) {
+      return res.status(400).json({ error: 'Rotation must be 90, 180, or 270 degrees' });
+    }
+
+    await pdfService.rotatePDF(name, rotation, 'drawing');
+    res.json({ message: 'Drawing rotated successfully' });
+  } catch (error: any) {
+    console.error('Rotate drawing error:', error);
+    res.status(500).json({ error: error.message || 'Failed to rotate drawing' });
   }
 });
 
