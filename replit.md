@@ -15,6 +15,7 @@ The frontend is built with React and Vite, emphasizing a full-screen, responsive
 - Real-time visual feedback for field mapping and drawing placement, including numbered labels, colored borders, and rotation previews.
 - Consistent zoom, pan, and scroll controls across all PDF viewers.
 - Professional styling with larger, more spacious buttons and improved spacing.
+- **Side-by-Side Layout**: VisualPlacementEditor features a side-by-side layout with the PDF viewport always visible on the left and a fixed 350px properties panel on the right, ensuring users can always see the template while editing drawing placements.
 
 ### Technical Implementations
 - **Backend**: Node.js 20+, Express, TypeScript, utilizing `pdf-lib` for PDF manipulation and `fs-extra` for file management.
@@ -27,11 +28,12 @@ The frontend is built with React and Vite, emphasizing a full-screen, responsive
 ### Feature Specifications
 - **Template Management**: Upload, delete, and manage PDF templates and their associated field mappings.
 - **Drawing Management**: Upload, delete, and rename technical drawings (PDF, PNG, JPG, SVG). PDF drawings can have their own field mappings.
-- **Combinations Management**: A three-tier architecture links templates with drawing placements. Combinations define which drawings are placed on a template, their positions, sizes, and conditional rendering rules.
+- **Global Mapping Presets**: Save, load, and reuse drawing field mapping configurations across different drawings. Presets include coordinates, fonts, colors, alignments, and conditional logic, enabling consistent mapping patterns across projects.
+- **Combinations Management**: A three-tier architecture links templates with drawing placements. Combinations define which drawings are placed on a template, their positions, sizes, and conditional rendering rules. Bulk creation feature generates multiple separate combinations (one per drawing) with configurable naming patterns.
 - **PDF Generation API**: REST endpoints for generating composite PDFs based on defined combinations and provided data for both template and drawing fields.
 
 ### System Design Choices
-- **File Structure**: Organized directories for `/templates/`, `/mappings/`, `/drawings/`, `/drawings_mappings/`, and `/combinations/` ensure clear separation of assets.
+- **File Structure**: Organized directories for `/templates/`, `/mappings/`, `/drawings/`, `/drawings_mappings/`, `/mapping_presets/`, and `/combinations/` ensure clear separation of assets. Mapping presets are stored as JSON files in the mapping_presets directory for global reuse.
 - **Coordinate System**: Internally uses PDF points (72 points = 1 inch) with Y-axis flipped for consistency. Coordinate storage is top-edge Y for UI, converted to baseline Y for PDF rendering.
 - **Security**: Includes path traversal protection, filename sanitization, and allowed file type validation.
 
