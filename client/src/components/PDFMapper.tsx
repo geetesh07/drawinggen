@@ -49,6 +49,9 @@ function PDFMapper({ templateName, onMappingSaved, isDrawing = false }: Props) {
   const [gridSize, setGridSize] = useState(10);
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState<{ x: number; y: number; scrollLeft: number; scrollTop: number } | null>(null);
+  const [presets, setPresets] = useState<string[]>([]);
+  const [newPresetName, setNewPresetName] = useState('');
+  const [showPresetPanel, setShowPresetPanel] = useState(false);
   
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const overlayCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -386,6 +389,79 @@ function PDFMapper({ templateName, onMappingSaved, isDrawing = false }: Props) {
     setPanStart(null);
   };
 
+  const loadPresets = async () => {
+    try {
+      const response = await fetch('/api/mapping-presets');
+      const data = await response.json();
+      setPresets(data);
+    } catch (error) {
+      console.error('Failed to load presets:', error);
+    }
+  };
+
+  const handleSavePreset = async () => {
+    if (!newPresetName.trim()) {
+      alert('Please enter a preset name');
+      return;
+    }
+
+    if (Object.keys(mapping).length === 0) {
+      alert('No mapping to save. Please add some fields first.');
+      return;
+    }
+
+    try {
+      await fetch(`/api/mapping-presets/${newPresetName}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(mapping)
+      });
+      alert(`Preset "${newPresetName}" saved successfully!`);
+      setNewPresetName('');
+      await loadPresets();
+    } catch (error) {
+      console.error('Failed to save preset:', error);
+      alert('Failed to save preset');
+    }
+  };
+
+  const handleLoadPreset = async (presetName: string) => {
+    if (Object.keys(mapping).length > 0) {
+      if (!confirm('This will replace your current mapping. Continue?')) {
+        return;
+      }
+    }
+
+    try {
+      const response = await fetch(`/api/mapping-presets/${presetName}`);
+      const data = await response.json();
+      setMapping(data);
+      alert(`Preset "${presetName}" loaded successfully!`);
+    } catch (error) {
+      console.error('Failed to load preset:', error);
+      alert('Failed to load preset');
+    }
+  };
+
+  const handleDeletePreset = async (presetName: string) => {
+    if (!confirm(`Delete preset "${presetName}"?`)) {
+      return;
+    }
+
+    try {
+      await fetch(`/api/mapping-presets/${presetName}`, { method: 'DELETE' });
+      alert(`Preset "${presetName}" deleted successfully!`);
+      await loadPresets();
+    } catch (error) {
+      console.error('Failed to delete preset:', error);
+      alert('Failed to delete preset');
+    }
+  };
+
+  useEffect(() => {
+    loadPresets();
+  }, []);
+
   return (
     <div className="pdf-mapper">
       <div className="mapper-content">
@@ -643,6 +719,72 @@ function PDFMapper({ templateName, onMappingSaved, isDrawing = false }: Props) {
                   </div>
                 ))}
               </div>
+            )}
+          </div>
+
+          <div className="panel-section">
+            <div className="fields-header">
+              <h3>Global Mapping Presets</h3>
+              <button 
+                className="toggle-preset-btn" 
+                onClick={() => setShowPresetPanel(!showPresetPanel)}
+              >
+                {showPresetPanel ? '▼' : '▶'} {showPresetPanel ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            
+            {showPresetPanel && (
+              <>
+                <div className="preset-save-section">
+                  <h4>Save Current Mapping as Preset</h4>
+                  <div className="preset-input-row">
+                    <input
+                      type="text"
+                      placeholder="Preset name (e.g., Standard Invoice Fields)"
+                      value={newPresetName}
+                      onChange={(e) => setNewPresetName(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleSavePreset()}
+                    />
+                    <button className="save-preset-btn" onClick={handleSavePreset}>
+                      💾 Save as Preset
+                    </button>
+                  </div>
+                </div>
+
+                <div className="preset-list-section">
+                  <h4>Saved Presets ({presets.length})</h4>
+                  {presets.length === 0 ? (
+                    <div className="no-presets">
+                      <p>No presets saved yet</p>
+                      <p className="hint">Save your current mapping to reuse it later</p>
+                    </div>
+                  ) : (
+                    <div className="presets-items">
+                      {presets.map((presetName) => (
+                        <div key={presetName} className="preset-item">
+                          <div className="preset-name">{presetName}</div>
+                          <div className="preset-actions">
+                            <button
+                              className="load-btn"
+                              onClick={() => handleLoadPreset(presetName)}
+                              title="Load this preset"
+                            >
+                              📥 Load
+                            </button>
+                            <button
+                              className="delete-btn"
+                              onClick={() => handleDeletePreset(presetName)}
+                              title="Delete preset"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
             )}
           </div>
         </div>

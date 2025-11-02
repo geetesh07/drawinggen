@@ -10,6 +10,7 @@ export class PDFService {
   private drawingsMappingsDir = path.join(process.cwd(), 'drawings_mappings');
   private combinationsDir = path.join(process.cwd(), 'combinations');
   private outputDir = path.join(process.cwd(), 'output');
+  private mappingPresetsDir = path.join(process.cwd(), 'mapping_presets');
 
   constructor() {
     fs.ensureDirSync(this.templatesDir);
@@ -18,6 +19,7 @@ export class PDFService {
     fs.ensureDirSync(this.drawingsMappingsDir);
     fs.ensureDirSync(this.combinationsDir);
     fs.ensureDirSync(this.outputDir);
+    fs.ensureDirSync(this.mappingPresetsDir);
   }
 
   private sanitizeFilename(filename: string): string {
@@ -810,5 +812,43 @@ export class PDFService {
 
     const pdfBytes = await templatePdfDoc.save();
     return Buffer.from(pdfBytes);
+  }
+
+  async listMappingPresets(): Promise<string[]> {
+    const files = await fs.readdir(this.mappingPresetsDir);
+    return files.filter(f => f.endsWith('.json')).map(f => f.replace('.json', ''));
+  }
+
+  async getMappingPreset(name: string): Promise<TemplateMapping | null> {
+    try {
+      const sanitized = this.sanitizeFilename(name);
+      const presetPath = path.join(this.mappingPresetsDir, `${sanitized}.json`);
+      
+      if (!await fs.pathExists(presetPath)) {
+        return null;
+      }
+
+      return await fs.readJSON(presetPath);
+    } catch (error) {
+      console.error('Error loading mapping preset:', error);
+      return null;
+    }
+  }
+
+  async saveMappingPreset(name: string, mapping: TemplateMapping): Promise<void> {
+    const sanitized = this.sanitizeFilename(name);
+    const presetPath = path.join(this.mappingPresetsDir, `${sanitized}.json`);
+    await fs.writeJSON(presetPath, mapping, { spaces: 2 });
+  }
+
+  async deleteMappingPreset(name: string): Promise<void> {
+    const sanitized = this.sanitizeFilename(name);
+    const presetPath = path.join(this.mappingPresetsDir, `${sanitized}.json`);
+    
+    if (!await fs.pathExists(presetPath)) {
+      throw new Error(`Mapping preset not found: ${name}`);
+    }
+
+    await fs.remove(presetPath);
   }
 }

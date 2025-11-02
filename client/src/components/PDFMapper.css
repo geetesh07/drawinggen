@@ -327,3 +327,143 @@
   opacity: 1;
   transform: scale(1.1);
 }
+
+.toggle-preset-btn {
+  padding: 0.5rem 1rem;
+  background: #667eea;
+  color: white;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.toggle-preset-btn:hover {
+  background: #5568d3;
+  transform: translateY(-1px);
+}
+
+.preset-save-section {
+  margin-bottom: 1.5rem;
+}
+
+.preset-save-section h4 {
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+  color: #555;
+}
+
+.preset-input-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.preset-input-row input {
+  flex: 1;
+  padding: 0.625rem;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.preset-input-row input:focus {
+  outline: none;
+  border-color: #667eea;
+}
+
+.save-preset-btn {
+  padding: 0.625rem 1rem;
+  background: #28a745;
+  color: white;
+  border-radius: 6px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.save-preset-btn:hover {
+  background: #218838;
+  transform: translateY(-1px);
+}
+
+.preset-list-section h4 {
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+  color: #555;
+}
+
+.no-presets {
+  text-align: center;
+  padding: 1.5rem 1rem;
+  color: #999;
+  background: #f8f9fa;
+  border-radius: 6px;
+}
+
+.no-presets .hint {
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.presets-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.preset-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  transition: all 0.2s;
+}
+
+.preset-item:hover {
+  background: #e8ebfa;
+  border-color: #667eea;
+}
+
+.preset-name {
+  flex: 1;
+  font-weight: 500;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.preset-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.preset-actions .load-btn {
+  padding: 0.4rem 0.75rem;
+  background: #667eea;
+  color: white;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.preset-actions .load-btn:hover {
+  background: #5568d3;
+  transform: translateY(-1px);
+}
+
+.preset-actions .delete-btn {
+  padding: 0.4rem 0.75rem;
+  background: #dc3545;
+  color: white;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+
+.preset-actions .delete-btn:hover {
+  background: #c82333;
+  transform: translateY(-1px);
+}

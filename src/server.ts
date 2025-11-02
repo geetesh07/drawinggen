@@ -406,6 +406,57 @@ app.post('/api/generate-combination', async (req: Request, res: Response) => {
   }
 });
 
+app.get('/api/mapping-presets', async (req: Request, res: Response) => {
+  try {
+    const presets = await pdfService.listMappingPresets();
+    res.json(presets);
+  } catch (error: any) {
+    console.error('List mapping presets error:', error);
+    res.status(500).json({ error: error.message || 'Failed to list mapping presets' });
+  }
+});
+
+app.get('/api/mapping-presets/:name', async (req: Request, res: Response) => {
+  try {
+    const { name } = req.params;
+    const preset = await pdfService.getMappingPreset(name);
+
+    if (!preset) {
+      return res.status(404).json({ error: 'Mapping preset not found' });
+    }
+
+    res.json(preset);
+  } catch (error: any) {
+    console.error('Get mapping preset error:', error);
+    res.status(500).json({ error: error.message || 'Failed to get mapping preset' });
+  }
+});
+
+app.post('/api/mapping-presets/:name', async (req: Request, res: Response) => {
+  try {
+    const { name } = req.params;
+    const mapping = req.body;
+
+    await pdfService.saveMappingPreset(name, mapping);
+
+    res.json({ message: 'Mapping preset saved successfully' });
+  } catch (error: any) {
+    console.error('Save mapping preset error:', error);
+    res.status(500).json({ error: error.message || 'Failed to save mapping preset' });
+  }
+});
+
+app.delete('/api/mapping-presets/:name', async (req: Request, res: Response) => {
+  try {
+    const { name } = req.params;
+    await pdfService.deleteMappingPreset(name);
+    res.json({ message: 'Mapping preset deleted successfully' });
+  } catch (error: any) {
+    console.error('Delete mapping preset error:', error);
+    res.status(500).json({ error: error.message || 'Failed to delete mapping preset' });
+  }
+});
+
 app.get('*', (req: Request, res: Response) => {
   res.sendFile(path.join(__dirname, '../client/build/index.html'));
 });

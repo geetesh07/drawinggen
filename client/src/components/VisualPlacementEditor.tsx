@@ -331,139 +331,149 @@ function VisualPlacementEditor({ templateName, placements, onPlacementsChange, d
 
   return (
     <div className="visual-placement-editor">
-      <div className="placement-toolbar">
-        <div className="toolbar-left">
-          <button className="toolbar-btn" onClick={handleAddPlacement}>
-            ➕ Add Drawing
-          </button>
-          {selectedIndex !== null && (
-            <button className="toolbar-btn danger" onClick={handleRemovePlacement}>
-              🗑️ Remove Selected
+      <div className="editor-main-area">
+        <div className="placement-toolbar">
+          <div className="toolbar-left">
+            <button className="toolbar-btn" onClick={handleAddPlacement}>
+              ➕ Add Drawing
             </button>
+            {selectedIndex !== null && (
+              <button className="toolbar-btn danger" onClick={handleRemovePlacement}>
+                🗑️ Remove Selected
+              </button>
+            )}
+          </div>
+          
+          <div className="zoom-controls">
+            <label>Zoom:</label>
+            <button onClick={() => setZoom(Math.max(0.5, zoom - 0.1))}>−</button>
+            <span>{Math.round(zoom * 100)}%</span>
+            <button onClick={() => setZoom(Math.min(2, zoom + 0.1))}>+</button>
+          </div>
+        </div>
+
+        <div 
+          ref={containerRef}
+          className={`canvas-container ${isPanning ? 'panning' : ''}`}
+          onMouseDown={handleContainerMouseDown}
+          onMouseMove={handleContainerMouseMove}
+          onMouseUp={handleContainerMouseUp}
+          onMouseLeave={handleContainerMouseUp}
+        >
+          <div className="canvas-wrapper">
+            <canvas ref={canvasRef} className="pdf-canvas" />
+            <canvas
+              ref={overlayCanvasRef}
+              className="overlay-canvas"
+              onMouseDown={handleCanvasMouseDown}
+              onMouseMove={handleCanvasMouseMove}
+              onMouseUp={handleCanvasMouseUp}
+              onMouseLeave={handleCanvasMouseUp}
+            />
+          </div>
+        </div>
+
+        <div className="placement-help">
+          <p>💡 <strong>Tip:</strong> Click and drag to position drawings. Middle-click to pan. Use corner handle to resize. Edit properties in the sidebar →</p>
+        </div>
+      </div>
+
+      <div className="placement-properties">
+        <div className="properties-content">
+          {selectedIndex !== null ? (
+            <>
+              <h4>Drawing {selectedIndex + 1}: {placements[selectedIndex].drawingName}</h4>
+              <div className="properties-grid">
+                <div className="prop-field">
+                  <label>Drawing:</label>
+                  <select
+                    value={placements[selectedIndex].drawingName}
+                    onChange={(e) => handleUpdateSelectedPlacement('drawingName', e.target.value)}
+                  >
+                    {drawings.map((drawing) => (
+                      <option key={drawing} value={drawing}>{drawing}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="prop-field">
+                  <label>X Position:</label>
+                  <input
+                    type="number"
+                    value={Math.round(placements[selectedIndex].x)}
+                    onChange={(e) => handleUpdateSelectedPlacement('x', parseFloat(e.target.value))}
+                  />
+                </div>
+                <div className="prop-field">
+                  <label>Y Position:</label>
+                  <input
+                    type="number"
+                    value={Math.round(placements[selectedIndex].y)}
+                    onChange={(e) => handleUpdateSelectedPlacement('y', parseFloat(e.target.value))}
+                  />
+                </div>
+                <div className="prop-field">
+                  <label>Width:</label>
+                  <input
+                    type="number"
+                    value={Math.round(placements[selectedIndex].width)}
+                    onChange={(e) => handleUpdateSelectedPlacement('width', parseFloat(e.target.value))}
+                  />
+                </div>
+                <div className="prop-field">
+                  <label>Height:</label>
+                  <input
+                    type="number"
+                    value={Math.round(placements[selectedIndex].height)}
+                    onChange={(e) => handleUpdateSelectedPlacement('height', parseFloat(e.target.value))}
+                  />
+                </div>
+                <div className="prop-field">
+                  <label>Rotation (degrees):</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="360"
+                    step="1"
+                    placeholder="0"
+                    value={placements[selectedIndex].rotation || 0}
+                    onChange={(e) => handleUpdateSelectedPlacement('rotation', parseFloat(e.target.value) || 0)}
+                  />
+                </div>
+              </div>
+              <div className="conditional-section">
+                <h5>Conditional Rendering (Optional)</h5>
+                <p style={{ fontSize: '0.85rem', color: '#888', marginBottom: '1rem', lineHeight: 1.4 }}>
+                  Show this drawing only when a specific field has a value. Leave empty to always show.
+                </p>
+                <div className="prop-field">
+                  <label>Field Name:</label>
+                  <input
+                    type="text"
+                    placeholder="e.g., show_detail"
+                    value={placements[selectedIndex].conditionField || ''}
+                    onChange={(e) => handleUpdateSelectedPlacement('conditionField', e.target.value)}
+                  />
+                </div>
+                <div className="prop-field">
+                  <label>Required Value:</label>
+                  <input
+                    type="text"
+                    placeholder="e.g., yes"
+                    value={placements[selectedIndex].conditionValue || ''}
+                    onChange={(e) => handleUpdateSelectedPlacement('conditionValue', e.target.value)}
+                  />
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="no-selection-message">
+              <div className="icon">👈</div>
+              <p><strong>No Drawing Selected</strong></p>
+              <p>Click on a drawing in the PDF to edit its properties</p>
+              <p style={{ marginTop: '1rem', fontSize: '0.85rem', color: '#bbb' }}>or click "Add Drawing" to create a new one</p>
+            </div>
           )}
         </div>
-        
-        <div className="zoom-controls">
-          <label>Zoom:</label>
-          <button onClick={() => setZoom(Math.max(0.5, zoom - 0.1))}>−</button>
-          <span>{Math.round(zoom * 100)}%</span>
-          <button onClick={() => setZoom(Math.min(2, zoom + 0.1))}>+</button>
-        </div>
-      </div>
-
-      {selectedIndex !== null && (
-        <div className="placement-properties">
-          <h4>Selected: {placements[selectedIndex].drawingName}</h4>
-          <div className="properties-grid">
-            <div className="prop-field">
-              <label>Drawing:</label>
-              <select
-                value={placements[selectedIndex].drawingName}
-                onChange={(e) => handleUpdateSelectedPlacement('drawingName', e.target.value)}
-              >
-                {drawings.map((drawing) => (
-                  <option key={drawing} value={drawing}>{drawing}</option>
-                ))}
-              </select>
-            </div>
-            <div className="prop-field">
-              <label>X:</label>
-              <input
-                type="number"
-                value={Math.round(placements[selectedIndex].x)}
-                onChange={(e) => handleUpdateSelectedPlacement('x', parseFloat(e.target.value))}
-              />
-            </div>
-            <div className="prop-field">
-              <label>Y:</label>
-              <input
-                type="number"
-                value={Math.round(placements[selectedIndex].y)}
-                onChange={(e) => handleUpdateSelectedPlacement('y', parseFloat(e.target.value))}
-              />
-            </div>
-            <div className="prop-field">
-              <label>Width:</label>
-              <input
-                type="number"
-                value={Math.round(placements[selectedIndex].width)}
-                onChange={(e) => handleUpdateSelectedPlacement('width', parseFloat(e.target.value))}
-              />
-            </div>
-            <div className="prop-field">
-              <label>Height:</label>
-              <input
-                type="number"
-                value={Math.round(placements[selectedIndex].height)}
-                onChange={(e) => handleUpdateSelectedPlacement('height', parseFloat(e.target.value))}
-              />
-            </div>
-            <div className="prop-field">
-              <label>Rotation:</label>
-              <input
-                type="number"
-                min="0"
-                max="360"
-                step="1"
-                placeholder="0°"
-                value={placements[selectedIndex].rotation || 0}
-                onChange={(e) => handleUpdateSelectedPlacement('rotation', parseFloat(e.target.value) || 0)}
-              />
-              <span style={{ fontSize: '0.85rem', color: '#888' }}>degrees</span>
-            </div>
-          </div>
-          <div style={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #e0e0e0' }}>
-            <h4 style={{ fontSize: '0.95rem', marginBottom: '0.75rem', color: '#666' }}>Conditional Rendering (Optional)</h4>
-            <p style={{ fontSize: '0.85rem', color: '#888', marginBottom: '0.75rem' }}>
-              Show this drawing only when a specific field has a value. Leave empty to always show.
-            </p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-              <div className="prop-field">
-                <label>Field Name:</label>
-                <input
-                  type="text"
-                  placeholder="e.g., show_detail"
-                  value={placements[selectedIndex].conditionField || ''}
-                  onChange={(e) => handleUpdateSelectedPlacement('conditionField', e.target.value)}
-                />
-              </div>
-              <div className="prop-field">
-                <label>Required Value:</label>
-                <input
-                  type="text"
-                  placeholder="e.g., yes"
-                  value={placements[selectedIndex].conditionValue || ''}
-                  onChange={(e) => handleUpdateSelectedPlacement('conditionValue', e.target.value)}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div 
-        ref={containerRef}
-        className={`canvas-container ${isPanning ? 'panning' : ''}`}
-        onMouseDown={handleContainerMouseDown}
-        onMouseMove={handleContainerMouseMove}
-        onMouseUp={handleContainerMouseUp}
-        onMouseLeave={handleContainerMouseUp}
-      >
-        <div className="canvas-wrapper">
-          <canvas ref={canvasRef} className="pdf-canvas" />
-          <canvas
-            ref={overlayCanvasRef}
-            className="overlay-canvas"
-            onMouseDown={handleCanvasMouseDown}
-            onMouseMove={handleCanvasMouseMove}
-            onMouseUp={handleCanvasMouseUp}
-            onMouseLeave={handleCanvasMouseUp}
-          />
-        </div>
-      </div>
-
-      <div className="placement-help">
-        <p>💡 <strong>Tip:</strong> Click and drag to position drawings. Middle-click to pan. Use corner handle to resize. Set rotation angle in properties panel.</p>
       </div>
     </div>
   );

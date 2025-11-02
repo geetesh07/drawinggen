@@ -117,6 +117,9 @@ function BulkCombinationCreator({ onComplete, onCancel }: BulkCombinationCreator
 
   const generateCombinationName = (drawingName: string): string => {
     const baseName = drawingName.replace(/\.[^/.]+$/, '');
+    if (namingPattern === 'drawing') {
+      return baseName;
+    }
     return `${prefix}${baseName}${suffix}`;
   };
 
