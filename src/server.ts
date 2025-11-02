@@ -278,6 +278,66 @@ app.delete('/api/combinations/:name', async (req: Request, res: Response) => {
   }
 });
 
+app.post('/api/combinations/bulk-create', async (req: Request, res: Response) => {
+  try {
+    const { combinations } = req.body;
+
+    if (!Array.isArray(combinations) || combinations.length === 0) {
+      return res.status(400).json({ error: 'Invalid or empty combinations array' });
+    }
+
+    let created = 0;
+    const errors: string[] = [];
+
+    for (const combo of combinations) {
+      try {
+        const { name, templateName, drawing, placement } = combo;
+
+        if (!name || !templateName || !drawing || !placement) {
+          errors.push(`Missing required fields for combination: ${name || 'unknown'}`);
+          continue;
+        }
+
+        const combination = {
+          name,
+          templateName,
+          drawingPlacements: [
+            {
+              drawingName: drawing,
+              x: placement.x,
+              y: placement.y,
+              width: placement.width,
+              height: placement.height,
+              rotation: placement.rotation || 0
+            }
+          ]
+        };
+
+        await pdfService.saveCombination(name, combination);
+        created++;
+      } catch (error: any) {
+        errors.push(`Failed to create ${combo.name}: ${error.message}`);
+      }
+    }
+
+    if (created === 0) {
+      return res.status(500).json({ 
+        error: 'Failed to create any combinations', 
+        details: errors 
+      });
+    }
+
+    res.json({ 
+      message: `Successfully created ${created} combination(s)`,
+      created,
+      errors: errors.length > 0 ? errors : undefined
+    });
+  } catch (error: any) {
+    console.error('Bulk create combinations error:', error);
+    res.status(500).json({ error: error.message || 'Failed to bulk create combinations' });
+  }
+});
+
 app.post('/api/generate-combination', async (req: Request, res: Response) => {
   try {
     const { combination, templateData, drawingsData } = req.body;
