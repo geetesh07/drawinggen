@@ -1,26 +1,26 @@
 {
   "combinations": [
     {
-      "name": "HDR",
+      "name": "DRILLScreenshot 2025-11-02 181356",
       "templateName": "Customer Drawing Template_filled.pdf",
-      "drawing": "HDR.pdf",
+      "drawing": "Screenshot 2025-11-02 181356.pdf",
       "placement": {
-        "x": 708.5,
-        "y": 90.5,
-        "width": 200,
-        "height": 200,
+        "x": 364,
+        "y": 129,
+        "width": 365,
+        "height": 246,
         "rotation": 0
       }
     },
     {
-      "name": "Screenshot 2025-11-02 181356",
+      "name": "DRILLHDR",
       "templateName": "Customer Drawing Template_filled.pdf",
-      "drawing": "Screenshot 2025-11-02 181356.pdf",
+      "drawing": "HDR.pdf",
       "placement": {
-        "x": 708.5,
-        "y": 90.5,
-        "width": 200,
-        "height": 200,
+        "x": 364,
+        "y": 129,
+        "width": 365,
+        "height": 246,
         "rotation": 0
       }
     }
