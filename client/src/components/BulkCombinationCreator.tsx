@@ -210,7 +210,7 @@ function BulkCombinationCreator({ onComplete, onCancel }: BulkCombinationCreator
                 templateName={selectedTemplate}
                 placements={[placementConfig]}
                 onPlacementsChange={handlePlacementUpdate}
-                drawings={['PLACEHOLDER']}
+                drawings={[]}
               />
             </div>
             <div className="placement-controls">
