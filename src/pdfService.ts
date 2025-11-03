@@ -608,7 +608,11 @@ export class PDFService {
     for (const placement of combination.drawingPlacements) {
       if (placement.conditionField && placement.conditionValue) {
         const conditionFieldValue = templateData[placement.conditionField];
-        if (conditionFieldValue !== placement.conditionValue) {
+        const operator = placement.conditionOperator || 'equals';
+        
+        if (operator === 'equals' && conditionFieldValue !== placement.conditionValue) {
+          continue;
+        } else if (operator === 'not_equals' && conditionFieldValue === placement.conditionValue) {
           continue;
         }
       }
@@ -729,31 +733,14 @@ export class PDFService {
           offsetX = (placement.width - finalWidth) / 2;
         }
         
-        const rotation = placement.rotation || 0;
-        let drawX = placement.x + offsetX;
-        let drawY = height - placement.y - placement.height + offsetY;
-        
-        if (rotation !== 0) {
-          const rad = (rotation * Math.PI) / 180;
-          const cos = Math.cos(rad);
-          const sin = Math.sin(rad);
-          
-          const centerX = drawX + finalWidth / 2;
-          const centerY = drawY + finalHeight / 2;
-          
-          const dx = drawX - centerX;
-          const dy = drawY - centerY;
-          
-          drawX = centerX + dx * cos - dy * sin;
-          drawY = centerY + dx * sin + dy * cos;
-        }
+        const drawX = placement.x + offsetX;
+        const drawY = height - placement.y - placement.height + offsetY;
         
         firstPage.drawPage(embeddedPage, {
           x: drawX,
           y: drawY,
           width: finalWidth,
           height: finalHeight,
-          rotate: degrees(rotation),
         });
       } else if (['.png', '.jpg', '.jpeg'].includes(drawingExt)) {
         let image;
@@ -781,31 +768,14 @@ export class PDFService {
           offsetX = (placement.width - finalWidth) / 2;
         }
 
-        const rotation = placement.rotation || 0;
-        let drawX = placement.x + offsetX;
-        let drawY = height - placement.y - placement.height + offsetY;
-        
-        if (rotation !== 0) {
-          const rad = (rotation * Math.PI) / 180;
-          const cos = Math.cos(rad);
-          const sin = Math.sin(rad);
-          
-          const centerX = drawX + finalWidth / 2;
-          const centerY = drawY + finalHeight / 2;
-          
-          const dx = drawX - centerX;
-          const dy = drawY - centerY;
-          
-          drawX = centerX + dx * cos - dy * sin;
-          drawY = centerY + dx * sin + dy * cos;
-        }
+        const drawX = placement.x + offsetX;
+        const drawY = height - placement.y - placement.height + offsetY;
         
         firstPage.drawImage(image, {
           x: drawX,
           y: drawY,
           width: finalWidth,
           height: finalHeight,
-          rotate: degrees(rotation),
         });
       }
     }

@@ -28,6 +28,7 @@ export interface DrawingPlacementArea {
   height: number;
   rotation?: number;
   conditionField?: string;
+  conditionOperator?: 'equals' | 'not_equals';
   conditionValue?: string;
 }
 
