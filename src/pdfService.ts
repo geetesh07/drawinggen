@@ -625,10 +625,10 @@ export class PDFService {
 
       if (drawingExt === '.pdf') {
         const drawingPdfDoc = await PDFDocument.load(drawingBuffer.buffer);
+        const drawingPages = drawingPdfDoc.getPages();
+        const drawingFirstPage = drawingPages[0];
 
         if (drawingMapping) {
-          const drawingPages = drawingPdfDoc.getPages();
-          const drawingFirstPage = drawingPages[0];
           const { height: drawingHeight } = drawingFirstPage.getSize();
 
           for (const [fieldName, fieldMapping] of Object.entries(drawingMapping)) {
@@ -712,6 +712,9 @@ export class PDFService {
             }
           }
         }
+
+        // Reset rotation to 0 on the drawing page before embedding to prevent unwanted rotation
+        drawingFirstPage.setRotation(degrees(0));
 
         const [embeddedPage] = await templatePdfDoc.embedPdf(drawingPdfDoc, [0]);
         

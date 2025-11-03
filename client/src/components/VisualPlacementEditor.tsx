@@ -28,9 +28,7 @@ function VisualPlacementEditor({ templateName, placements, onPlacementsChange, d
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
-  const [isDrawingNew, setIsDrawingNew] = useState(false);
   const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(null);
-  const [currentRect, setCurrentRect] = useState<{ x: number; y: number; width: number; height: number } | null>(null);
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState<{ x: number; y: number; scrollLeft: number; scrollTop: number } | null>(null);
   const [drawingPreviews, setDrawingPreviews] = useState<{ [name: string]: HTMLImageElement | HTMLCanvasElement }>({});
@@ -45,7 +43,7 @@ function VisualPlacementEditor({ templateName, placements, onPlacementsChange, d
 
   useEffect(() => {
     drawPlacements();
-  }, [placements, zoom, selectedIndex, drawingPreviews, currentRect]);
+  }, [placements, zoom, selectedIndex, drawingPreviews]);
 
   useEffect(() => {
     loadDrawingPreviews();
@@ -186,16 +184,6 @@ function VisualPlacementEditor({ templateName, placements, onPlacementsChange, d
         ctx.strokeRect(x + width - handleSize, y + height - handleSize, handleSize, handleSize);
       }
     });
-
-    if (currentRect) {
-      ctx.strokeStyle = '#10b981';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([5, 5]);
-      ctx.strokeRect(currentRect.x, currentRect.y, currentRect.width, currentRect.height);
-      ctx.fillStyle = 'rgba(16, 185, 129, 0.15)';
-      ctx.fillRect(currentRect.x, currentRect.y, currentRect.width, currentRect.height);
-      ctx.setLineDash([]);
-    }
   };
 
   const handleCanvasMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -213,12 +201,6 @@ function VisualPlacementEditor({ templateName, placements, onPlacementsChange, d
     const canvasY = (e.clientY - rect.top) * scaleY;
     const mouseX = canvasX / zoom;
     const mouseY = canvasY / zoom;
-
-    if (isDrawingNew) {
-      setDragStart({ x: canvasX, y: canvasY });
-      setCurrentRect({ x: canvasX, y: canvasY, width: 0, height: 0 });
-      return;
-    }
 
     for (let i = placements.length - 1; i >= 0; i--) {
       const p = placements[i];
@@ -264,18 +246,6 @@ function VisualPlacementEditor({ templateName, placements, onPlacementsChange, d
     const mouseX = canvasX / zoom;
     const mouseY = canvasY / zoom;
 
-    if (isDrawingNew && dragStart) {
-      const width = canvasX - dragStart.x;
-      const height = canvasY - dragStart.y;
-      setCurrentRect({
-        x: width < 0 ? canvasX : dragStart.x,
-        y: height < 0 ? canvasY : dragStart.y,
-        width: Math.abs(width),
-        height: Math.abs(height),
-      });
-      return;
-    }
-
     if (!isDragging && !isResizing) return;
     if (selectedIndex === null || !dragStart) return;
 
@@ -294,37 +264,6 @@ function VisualPlacementEditor({ templateName, placements, onPlacementsChange, d
   };
 
   const handleCanvasMouseUp = () => {
-    if (isDrawingNew && currentRect && dragStart) {
-      if (drawings.length === 0) {
-        alert('No drawings available. Please upload drawings first.');
-        setCurrentRect(null);
-        setDragStart(null);
-        return;
-      }
-
-      const actualX = Math.round(currentRect.x / zoom);
-      const actualY = Math.round(currentRect.y / zoom);
-      const actualWidth = Math.round(currentRect.width / zoom);
-      const actualHeight = Math.round(currentRect.height / zoom);
-
-      if (actualWidth < 50 || actualHeight < 50) {
-        alert('Area too small. Please draw a larger selection area (minimum 50x50).');
-      } else {
-        const newPlacement: DrawingPlacement = {
-          drawingName: drawings[0],
-          x: actualX,
-          y: actualY,
-          width: actualWidth,
-          height: actualHeight,
-        };
-        onPlacementsChange([...placements, newPlacement]);
-        setSelectedIndex(placements.length);
-      }
-      
-      setCurrentRect(null);
-      setDragStart(null);
-    }
-
     setIsDragging(false);
     setIsResizing(false);
     setDragStart(null);
@@ -404,16 +343,6 @@ function VisualPlacementEditor({ templateName, placements, onPlacementsChange, d
       <div className="editor-main-area">
         <div className="placement-toolbar">
           <div className="toolbar-left">
-            <button 
-              className={`toolbar-btn ${isDrawingNew ? 'active' : ''}`}
-              onClick={() => {
-                setIsDrawingNew(!isDrawingNew);
-                setSelectedIndex(null);
-              }}
-              style={{ backgroundColor: isDrawingNew ? '#10b981' : undefined }}
-            >
-              {isDrawingNew ? '✓ Draw Mode' : '✏️ Draw Mode'}
-            </button>
             <button className="toolbar-btn" onClick={handleAddPlacement}>
               ➕ Add Drawing
             </button>
@@ -454,7 +383,7 @@ function VisualPlacementEditor({ templateName, placements, onPlacementsChange, d
         </div>
 
         <div className="placement-help">
-          <p>💡 <strong>Tip:</strong> {isDrawingNew ? 'Drag on PDF to draw new placement area' : 'Click and drag to position drawings. Use corner handle to resize. Middle-click to pan'}</p>
+          <p>💡 <strong>Tip:</strong> Click and drag to position drawings. Use corner handle to resize. Middle-click to pan</p>
         </div>
       </div>
 
