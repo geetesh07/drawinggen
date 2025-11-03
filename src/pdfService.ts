@@ -713,9 +713,6 @@ export class PDFService {
           }
         }
 
-        // Reset rotation to 0 on the drawing page before embedding to prevent unwanted rotation
-        drawingFirstPage.setRotation(degrees(0));
-
         const [embeddedPage] = await templatePdfDoc.embedPdf(drawingPdfDoc, [0]);
         
         const drawingWidth = embeddedPage.width;

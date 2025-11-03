@@ -100,19 +100,19 @@ function PDFRotator({ pdfName, pdfType, onRotate, onClose }: Props) {
               <div className="rotation-buttons">
                 <button
                   onClick={() => setRotation(90)}
-                  className={`rotate-btn ${rotation === 90 ? 'active' : ''}`}
+                  className={`rotate-btn ${rotation === 0 ? 'active' : ''}`}
                 >
                   ↶ 90°<br/><small>Left</small>
                 </button>
                 <button
                   onClick={() => setRotation(180)}
-                  className={`rotate-btn ${rotation === 180 ? 'active' : ''}`}
+                  className={`rotate-btn ${rotation === 0 ? 'active' : ''}`}
                 >
                   ↕ 180°<br/><small>Flip</small>
                 </button>
                 <button
                   onClick={() => setRotation(270)}
-                  className={`rotate-btn ${rotation === 270 ? 'active' : ''}`}
+                  className={`rotate-btn ${rotation === 0 ? 'active' : ''}`}
                 >
                   ↷ 270°<br/><small>Right</small>
                 </button>
