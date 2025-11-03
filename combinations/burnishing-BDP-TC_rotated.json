@@ -1,0 +1,14 @@
+{
+  "name": "burnishing-BDP-TC_rotated",
+  "templateName": "Customer Drawing Template_filled.pdf",
+  "drawingPlacements": [
+    {
+      "drawingName": "BDP-TC_rotated.pdf",
+      "x": 354,
+      "y": 107,
+      "width": 400,
+      "height": 300,
+      "rotation": 0
+    }
+  ]
+}

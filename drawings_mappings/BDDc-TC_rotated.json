@@ -1,0 +1,50 @@
+{
+  "shank_len": {
+    "x": 560,
+    "y": 341,
+    "size": 12,
+    "align": "left",
+    "color": "#000000",
+    "fontFamily": "Helvetica",
+    "maxWidth": 129,
+    "maxHeight": 24,
+    "bold": false,
+    "italic": false
+  },
+  "flute_len": {
+    "x": 211,
+    "y": 341,
+    "size": 16,
+    "align": "center",
+    "color": "#000000",
+    "fontFamily": "Courier",
+    "maxWidth": 129,
+    "maxHeight": 24,
+    "bold": false,
+    "italic": false
+  },
+  "shank_dia": {
+    "x": 767,
+    "y": 288,
+    "size": 16,
+    "align": "center",
+    "color": "#000000",
+    "fontFamily": "Courier",
+    "maxWidth": 52,
+    "maxHeight": 20,
+    "bold": false,
+    "italic": false
+  },
+  "flute_dia": {
+    "x": 28,
+    "y": 288,
+    "size": 16,
+    "align": "center",
+    "color": "#000000",
+    "fontFamily": "Courier",
+    "maxWidth": 52,
+    "maxHeight": 20,
+    "bold": false,
+    "italic": false
+  }
+}
