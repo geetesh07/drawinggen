@@ -271,47 +271,6 @@ app.get('/api/combinations', async (req: Request, res: Response) => {
   }
 });
 
-app.get('/api/combinations/:name', async (req: Request, res: Response) => {
-  try {
-    const { name } = req.params;
-    const combination = await pdfService.getCombination(name);
-
-    if (!combination) {
-      return res.status(404).json({ error: 'Combination not found' });
-    }
-
-    res.json(combination);
-  } catch (error: any) {
-    console.error('Get combination error:', error);
-    res.status(500).json({ error: error.message || 'Failed to get combination' });
-  }
-});
-
-app.post('/api/combinations/:name', async (req: Request, res: Response) => {
-  try {
-    const { name } = req.params;
-    const combination = req.body;
-
-    await pdfService.saveCombination(name, combination);
-
-    res.json({ message: 'Combination saved successfully' });
-  } catch (error: any) {
-    console.error('Save combination error:', error);
-    res.status(500).json({ error: error.message || 'Failed to save combination' });
-  }
-});
-
-app.delete('/api/combinations/:name', async (req: Request, res: Response) => {
-  try {
-    const { name } = req.params;
-    await pdfService.deleteCombination(name);
-    res.json({ message: 'Combination deleted successfully' });
-  } catch (error: any) {
-    console.error('Delete combination error:', error);
-    res.status(500).json({ error: error.message || 'Failed to delete combination' });
-  }
-});
-
 app.post('/api/combinations/bulk-create', async (req: Request, res: Response) => {
   try {
     const { combinations } = req.body;
@@ -369,6 +328,47 @@ app.post('/api/combinations/bulk-create', async (req: Request, res: Response) =>
   } catch (error: any) {
     console.error('Bulk create combinations error:', error);
     res.status(500).json({ error: error.message || 'Failed to bulk create combinations' });
+  }
+});
+
+app.get('/api/combinations/:name', async (req: Request, res: Response) => {
+  try {
+    const { name } = req.params;
+    const combination = await pdfService.getCombination(name);
+
+    if (!combination) {
+      return res.status(404).json({ error: 'Combination not found' });
+    }
+
+    res.json(combination);
+  } catch (error: any) {
+    console.error('Get combination error:', error);
+    res.status(500).json({ error: error.message || 'Failed to get combination' });
+  }
+});
+
+app.post('/api/combinations/:name', async (req: Request, res: Response) => {
+  try {
+    const { name } = req.params;
+    const combination = req.body;
+
+    await pdfService.saveCombination(name, combination);
+
+    res.json({ message: 'Combination saved successfully' });
+  } catch (error: any) {
+    console.error('Save combination error:', error);
+    res.status(500).json({ error: error.message || 'Failed to save combination' });
+  }
+});
+
+app.delete('/api/combinations/:name', async (req: Request, res: Response) => {
+  try {
+    const { name } = req.params;
+    await pdfService.deleteCombination(name);
+    res.json({ message: 'Combination deleted successfully' });
+  } catch (error: any) {
+    console.error('Delete combination error:', error);
+    res.status(500).json({ error: error.message || 'Failed to delete combination' });
   }
 });
 
